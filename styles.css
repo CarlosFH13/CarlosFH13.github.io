@@ -1,0 +1,103 @@
+/* General reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+/* Body and overall layout */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+/* Navigation bar styles */
+header {
+    background-color: #6B2C91;
+    padding: 10px 0;
+}
+
+nav ul {
+    list-style-type: none;
+    text-align: center;
+}
+
+nav ul li {
+    display: inline;
+    margin: 0 20px;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 18px;
+    padding: 10px 20px;
+    transition: color 0.3s ease;
+}
+
+nav ul li a:hover {
+    color: #F8DD68;
+    border-radius: 5px;
+}
+
+/* Main section styling */
+main {
+    padding: 50px 20px;
+    padding-top: 10px;
+    text-align: center;
+    height: 90%
+}
+
+h1 {
+    font-size: 36px;
+    color: #333;
+}
+
+p {
+    font-size: 18px;
+    color: #555;
+}
+
+#mindmap-section {
+    text-align: center;
+    width: 100%;
+    height: 110vh; /* 90% of viewport height */
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    justify-content: center;
+    align-items: center;
+}
+
+#mindmap {
+    width: 100%;
+    height: 85%; /* Slightly reduced to leave space for title */
+    max-height: 85vh;
+    position: relative;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    background: white;
+}
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.toggle-button {
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    background-color: #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+.toggle-button.active {
+    background-color: #6B2C91;
+    color: white;
+}

@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Cybersecurity mindmap</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type='text/javascript' src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul class="nav-list">
+                <li><a href="#home">Cybersecurity</a></li>
+                <li><a href="#cu2">Course unit 2</a></li>
+                <li><a href="#cu3">Course unit 3</a></li>
+                <li><a href="#cu4">Course unit 4</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="mindmap-section">
+            <h2>Cybersecurity<br/>Mind Map</h2>
+            <div class="button-group">
+                <button class="toggle-button active" id="circularView">Circular View</button>
+                <button class="toggle-button" id="timelineView">Timeline View</button>
+                <button id="toggleExtraEdges">Toggle Extra Connections</button>
+            </div>
+            <div id="mindmap" style="height: 600px;"></div>
+        </section>
+    </main>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var container = document.getElementById("mindmap");
+        var circularButton = document.getElementById("circularView");
+        var timelineButton = document.getElementById("timelineView");
+        var toggleExtraButton = document.getElementById("toggleExtraEdges");
+        var nodes = new vis.DataSet();
+        var edges = new vis.DataSet();
+
+        // ---------------------------------
+      // Extra edges for toggling
+      // ---------------------------------
+      // For example, let's say you want extra connections between:
+      //   - The "Cybersecurity" center node (id=1) and Week 2 (id=3)
+      //   - "Week 2" (id=3) and "Week 3" (id=4)
+      //   - A random topic within Week 4 to a random topic within Week 7
+      // Adjust these IDs and connections however you prefer:
+      var extraEdges = [
+      ];
+      
+      // Whether extra edges are currently visible
+      let extraEdgesVisible = false;
+
+        function getTopicsForWeek(week) {
+            const topics = {
+                1: ["Introduction \nto Course", "What is \nCybersecurity?", "Cybersecurity \nDomains", "Security: Past \nand Present", "Scope of \nCybersecurity", "Course \nRoadmap", "Cybersecurity \nThreats", "Security \nProperties", "Achieving \nSecurity", "Security \nModels"],
+                2: ["Introduction \nto Cryptography", "Symmetric-Key \nCiphers", "Block Ciphers \n& Design", "Stream \nCiphers", "Encryption \nModes", "Security \nConsiderations"],
+                3: ["Public-Key \nCryptography", "Mathematical \nFoundations", "RSA \nAlgorithm", "Hybrid \nCryptosystems", "Digital \nSignatures"],
+                4: ["Introduction to \nCryptographic Checksums", "Cryptographic \nHash Functions", "Message \nAuthentication Codes (MAC)", "Authenticated \nEncryption", "Authenticated Encryption \nwith Associated Data (AEAD)", "Security \nConsiderations"],
+                5: ["Introduction to \nSecret Key Management", "Key Management \nIssues", "Session Key \nEstablishment", "Key Agreement \nProtocols", "Symmetric Key \nDistribution Protocols", "Security Considerations \nin Key Management"],
+                6: ["Introduction to \nPublic Key \nInfrastructure (PKI)", "PKI Components \nand Entities", "Digital \nCertificates", "Certificate \nRevocation Lists (CRLs)", "Certificate Hierarchies \nand Trust Models", "PKI in \nReal-Life Applications", "EMV (Europay, \nMasterCard, and Visa)", "MasterCard SecureCode \nand 3-D Secure Model"],
+                7: ["Introduction to \nAuthentication", "Authentication \nMethods", "Password-Based \nAuthentication", "Challenge-Response \nAuthentication Protocols", "Token-Based \nAuthentication", "Enterprise Authentication \nand Single Sign-On (SSO)", "Authentication in \nDistributed Environments"],
+                8: ["Introduction to \nVPNs", "VPN \nTechnologies", "Types of \nVPNs", "Security Risks \nand Benefits of VPNs", "IP Security \n(IPSec) Overview", "IPSec Components \nand Session\n Establishment", "Authentication\n Methods \nin IPSec", "IPSec Modes: \nTransport vs. Tunnel", "IPSec Traffic \nSecurity Protocols", "IPSec Packet \nProcessing", "Combining \nESP and AH"],
+                9: ["Introduction to \nEmail Security", "Comparison of \nPGP and S/MIME", "PGP (Pretty Good \nPrivacy) Overview", "Security Features \nand Services of PGP", "PGP Encryption \nProcess", "PGP Message \nFormat", "PGP Key \nManagement", "PGP Trust Model \n(Web-of-Trust)", "PGP Message \nTransmission and Reception"],
+                10: ["Introduction to \nSoftware Security", "Part 1: \nMalware \n(Malicious Software)", "Part 2: Buffer \nOverflow Vulnerabilities"],
+            };
+
+            return topics[week] || [];
+        }
+
+        function createTimelineGraph() {
+        nodes.clear();
+        edges.clear();
+
+        // Main Cybersecurity Node
+        nodes.add({ id: 1, label: "Cybersecurity", shape: "circle", color: "#ff8c00", size: 60, font: { size: 38 }, x: 0, y: 0 });
+
+        let xSpacing = 250; // Space between nodes horizontally
+        let ySpacing = 400; // Vertical spacing for week nodes
+        let topicRadius = 220; // Radius for circular subtopics
+
+        let xPos = xSpacing; // Start position for empty nodes
+        let yPos = 0; // Centerline
+
+        edges.add({ from: 1, to: 1001 });//Link cybersec and first empty node
+
+        
+        
+        for (let i = 1; i <= 10; i++) {
+            let emptyNodeId = 1000 + i; // Unique empty node ID
+            let weekNodeId = i + 1;
+
+            // Add an empty node between cybersecurity and week nodes
+            nodes.add({ id: emptyNodeId, label: "", shape: "circle", color: "#d3d3d3", size: 20, x: xPos, y: yPos });
+            edges.add({ from: emptyNodeId - 1, to: emptyNodeId });
+
+            // Alternate week node placement (odd: above, even: below)
+            let weekY = (i % 2 === 0) ? yPos + ySpacing : yPos - ySpacing;
+            nodes.add({ id: weekNodeId, label: `Week ${i}`, color: "#6fa3ef", size: 35, font: { size: 25 }, x: xPos, y: weekY });
+            edges.add({ from: emptyNodeId, to: weekNodeId });
+
+            // Add topics in a circular layout around the week node
+            let topics = getTopicsForWeek(i);
+            let angleStep = (2 * Math.PI) / topics.length; // Angle between topics
+
+            topics.forEach((topic, index) => {
+                let topicAngle = angleStep * (index-1.5);
+                let topicX = xPos + Math.cos(topicAngle) * topicRadius;
+                let topicY = weekY + Math.sin(topicAngle) * topicRadius;
+                let topicId = weekNodeId * 20 + index;
+
+                nodes.add({ id: topicId, label: topic, color: "#77dd77", size: 25, font: { size: 18 }, x: topicX, y: topicY });
+                edges.add({ from: weekNodeId, to: topicId });
+            });
+
+            // Move to the right for the next set of nodes
+            xPos += xSpacing*1.5;
+    }
+    let week10Part1 = ["Understanding \nMalware", "Malware \nClassification", "Types of \nMalware", "Advanced Persistent \nThreats (APTs)", "Defensive Measures \nAgainst Malware"]
+        let week10Part2 = ["Understanding \nBuffer Overflows", "Program Memory \nLayout", "Stack-Based Buffer \nOverflow Attacks", "Buffer Overflow \nExploitation Techniques", "Defenses Against \nBuffer \nOverflow Attacks"]
+        let week10Part1topicAngleStep = (2 * Math.PI) / (week10Part1.length*2);
+        week10Part1.forEach((week10Part1topic, index) => {
+            let week10Part1topicAngle = (week10Part1topicAngleStep * (index-3));
+            let week10Part1topicX = nodes.get(221).x + Math.cos(week10Part1topicAngle) * 300;
+            let week10Part1topicY = nodes.get(221).y + Math.sin(week10Part1topicAngle) * 300;
+            let week10Part1topicId = 223 + index;
+            nodes.add({ id: week10Part1topicId, label: week10Part1topic, color: "#77dd77", size: 25, font: { size: 22 }, x: week10Part1topicX, y: week10Part1topicY });
+            edges.add({ from: 221, to: week10Part1topicId });
+            });
+        let week10Part2topicAngleStep = (2 * Math.PI) / (week10Part2.length*1.5);
+        week10Part2.forEach((week10Part2topic, index) => {
+            let week10Part2topicAngle = (week10Part2topicAngleStep * (index));
+            let week10Part2topicX = nodes.get(222).x + Math.cos(week10Part2topicAngle) * 300;
+            let week10Part2topicY = nodes.get(222).y + Math.sin(week10Part2topicAngle) * 300;
+            let week10Part2topicId = 228 + index;
+            nodes.add({ id: week10Part2topicId, label: week10Part2topic, color: "#77dd77", size: 25, font: { size: 22 }, x: week10Part2topicX, y: week10Part2topicY });
+            edges.add({ from: 222, to: week10Part2topicId });
+            });
+}
+
+        
+        function createCircularGraph() {
+            nodes.clear();
+            edges.clear();
+            
+            nodes.add({ id: 1, label: "Cybersecurity", shape: "ellipse", color: "#ff8c00", size: 70, font: { size: 90 }, x: 0, y: 0 });
+            let angleStep = (2 * Math.PI) / 10;
+            let radius = 1300;
+
+            let week10Part1 = ["Understanding \nMalware", "Malware \nClassification", "Types of \nMalware", "Advanced Persistent \nThreats (APTs)", "Defensive Measures \nAgainst Malware"]
+            let week10Part2 = ["Understanding \nBuffer Overflows", "Program Memory \nLayout", "Stack-Based Buffer \nOverflow Attacks", "Buffer Overflow \nExploitation Techniques", "Defenses Against \nBuffer \nOverflow Attacks"]
+            let week10Part1topicAngleStep = (2 * Math.PI) / (week10Part1.length*2);
+            week10Part1.forEach((week10Part1topic, index) => {
+                let week10Part1topicAngle = (week10Part1topicAngleStep * index)+(week10Part1topicAngleStep*2.5);
+                let week10Part1topicX = -1277 + Math.cos(week10Part1topicAngle) * 350;
+                let week10Part1topicY = -1162 + Math.sin(week10Part1topicAngle) * 350;
+                let week10Part1topicId = 223 + index;
+                nodes.add({ id: week10Part1topicId, label: week10Part1topic+week10Part1topicId.toString(), color: "#77dd77", size: 25, font: { size: 22 }, x: week10Part1topicX, y: week10Part1topicY });
+                edges.add({ from: 221, to: week10Part1topicId });
+                });
+            let week10Part2topicAngleStep = (2 * Math.PI) / (week10Part2.length*1.5);
+            week10Part2.forEach((week10Part2topic, index) => {
+                let week10Part2topicAngle = (week10Part2topicAngleStep * index)+(week10Part2topicAngleStep*3.5);
+                let week10Part2topicX = -1030 + Math.cos(week10Part2topicAngle) * 400;
+                let week10Part2topicY = -1715 + Math.sin(week10Part2topicAngle) * 400;
+                let week10Part2topicId = 228 + index;
+                nodes.add({ id: week10Part2topicId, label: week10Part2topic+week10Part2topicId.toString(), color: "#77dd77", size: 25, font: { size: 22 }, x: week10Part2topicX, y: week10Part2topicY });
+                edges.add({ from: 222, to: week10Part2topicId });
+                });
+
+            for (let i = 1; i <= 10; i++) {
+                let angle = (angleStep * (i - 1))-(angleStep*2.5);
+                let weekNodeId = i + 1;
+                let x;
+                let y;
+                if (i%2==1) {
+                    x = 0.7*(Math.cos(angle) * radius);
+                    y = 0.7*(Math.sin(angle) * radius);
+                }
+                else{
+                    x = 1.3*(Math.cos(angle) * radius);
+                    y = 1.3*(Math.sin(angle) * radius);
+                }
+                nodes.add({ id: weekNodeId, label: `Week ${i}`, color: "#6fa3ef", size: 60, shape: "ellipse", font: { size: 85 }, x: x, y: y });
+                edges.add({ from: 1, to: weekNodeId });
+                
+                let topics = getTopicsForWeek(i);
+                let topicAngleStep = (2 * Math.PI) / topics.length;
+                let topicRadius = 350;
+                topics.forEach((topic, index) => {
+                    let topicAngle = (topicAngleStep * index)-(topicAngleStep*2.8);
+                    let topicX = Math.round(x + Math.cos(topicAngle) * topicRadius);
+                    let topicY = Math.round(y + Math.sin(topicAngle) * topicRadius); //+topicX.toString()+topicY.toString() add if needed
+                    let topicId = weekNodeId * 20 + index;
+                    nodes.add({ id: topicId, label: topic, color: "#77dd77", size: 25, font: { size: 30 }, x: topicX, y: topicY });
+                    edges.add({ from: weekNodeId, to: topicId });
+                });
+            }
+            nodes.update({ id: 186, x: nodes.get(186).x - 60, y: nodes.get(186).y + 30 });
+            
+
+        }
+        
+
+        function createRelations() {
+            //Connections for Cybersecurity Space
+            extraEdges.push({ from: 42, to: 181, label: "Requires Secure Communication Channels" }); // Links to "VPN Technologies" (Topic 9)
+            extraEdges.push({ from: 42, to: 145, label: "Depends on PKI for Trust Management" }); // Links to "PKI in Real-Life Applications" (Topic 7)
+            extraEdges.push({ from: 42, to: 225, label: "Targets Protection Against Malware" }); // Links to "Types of Malware" (Topic 11)
+            extraEdges.push({ from: 42, to: 124, label: "Includes Key Distribution Mechanisms" }); // Links to "Symmetric Key Distribution Protocols" (Topic 6)
+            extraEdges.push({ from: 42, to: 84, label: "Employs Digital Signatures for Integrity" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 42, to: 102, label: "Utilizes MACs for Data Integrity" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 42, to: 161, label: "Encompasses Authentication Methods" }); // Links to "Authentication Methods" (Topic 8)
+            extraEdges.push({ from: 42, to: 202, label: "Applies to PGP for Securing Emails" }); // Links to "PGP (Pretty Good Privacy) Overview" (Topic 10)
+
+            //Connections for Security:Past and Present
+            extraEdges.push({ from: 43, to: 46, label: "Evolved into Threat Landscape Models" }); // Links to "Cybersecurity Threats" (Topic 2)
+            extraEdges.push({ from: 43, to: 60, label: "Progressed from Classical to Modern Cryptography" }); // Links to "Introduction to Cryptography" (Topic 3)
+            extraEdges.push({ from: 43, to: 181, label: "Led to Development of VPN Technologies" }); // Links to "VPN Technologies" (Topic 9)
+            extraEdges.push({ from: 43, to: 223, label: "Addresses Historical Malware Trends" }); // Links to "Understanding Malware" (Topic 11)
+            extraEdges.push({ from: 43, to: 124, label: "Resulted in Key Management Evolution" }); // Links to "Symmetric Key Distribution Protocols" (Topic 6)
+            extraEdges.push({ from: 43, to: 162, label: "Inspired Advanced Authentication Protocols" }); // Links to "Password-Based Authentication" (Topic 8)
+            extraEdges.push({ from: 43, to: 145, label: "Contributed to the Emergence of PKI Systems" }); // Links to "PKI in Real-Life Applications" (Topic 7)
+
+            //Connections for Cybersecurity Threats
+            extraEdges.push({ from: 46, to: 223, label: "Includes Malware-Based Attacks" }); // Links to "Understanding Malware" (Topic 11)
+            extraEdges.push({ from: 46, to: 203, label: "Email is a Common Attack Vector" }); // Links to "Security Features and Services of PGP" (Topic 10)
+            extraEdges.push({ from: 46, to: 181, label: "Mitigated by VPN Technologies" }); // Links to "VPN Technologies" (Topic 9)
+            extraEdges.push({ from: 46, to: 160, label: "Exploits Weak Authentication" }); // Links to "Introduction to Authentication" (Topic 8)
+            extraEdges.push({ from: 46, to: 102, label: "Threatens Message Integrity" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 46, to: 125, label: "Requires Secure Key Management" }); // Links to "Security Considerations in Key Management" (Topic 6)
+            extraEdges.push({ from: 46, to: 84, label: "Countered with Digital Signatures" }); // Links to "Digital Signatures" (Topic 4)
+
+            //Connections for Introduction to Cryptography
+            extraEdges.push({ from: 60, to: 80, label: "Foundation for Public-Key Cryptography" }); // Links to "Introduction to Public-Key Cryptography" (Topic 4)
+            extraEdges.push({ from: 60, to: 102, label: "Basis for Message Authentication" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 60, to: 121, label: "Leads to Key Management Principles" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 60, to: 161, label: "Used in Authentication Methods" }); // Links to "Authentication Methods" (Topic 8)
+            extraEdges.push({ from: 60, to: 202, label: "Utilized in PGP Encryption" }); // Links to "PGP (Pretty Good Privacy) Overview" (Topic 10)
+            extraEdges.push({ from: 60, to: 222, label: "Supports Buffer Overflow Countermeasures" }); // Links to "Buffer Overflow Vulnerabilities" (Topic 11)
+
+            //Connections for Symmetric-Key Ciphers
+            extraEdges.push({ from: 61, to: 102, label: "Used to Construct MACs" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 61, to: 124, label: "Supports Symmetric Key Distribution" }); // Links to "Symmetric Key Distribution Protocols" (Topic 6)
+            extraEdges.push({ from: 61, to: 181, label: "Employed in VPN Data Encryption" }); // Links to "VPN Technologies" (Topic 9)
+            extraEdges.push({ from: 61, to: 204, label: "Provides PGP Message Confidentiality" }); // Links to "PGP Encryption Process" (Topic 10)
+            extraEdges.push({ from: 61, to: 227, label: "Encrypts Payload in Malware Defense" }); // Links to "Defensive Measures Against Malware" (Topic 11)
+
+            //Connections for Block Ciphers and Their Design
+            extraEdges.push({ from: 62, to: 102, label: "Forms Basis of MAC Construction" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 62, to: 122, label: "Influences Secure Session Key Handling" }); // Links to "Session Key Establishment" (Topic 6)
+            extraEdges.push({ from: 62, to: 204, label: "Used in PGP Hybrid Encryption" }); // Links to "PGP Encryption Process" (Topic 10)
+            extraEdges.push({ from: 62, to: 181, label: "Encrypts VPN Payloads in IPSec" }); // Links to "VPN Technologies" (Topic 9)
+            extraEdges.push({ from: 62, to: 227, label: "Strengthens Software Against Attacks" }); // Links to "Defensive Measures Against Malware" (Topic 11)
+
+            //Connections for Stream Ciphers
+            extraEdges.push({ from: 63, to: 102, label: "Used in Lightweight MAC Implementations" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 63, to: 124, label: "Applied in Symmetric Key Protocols" }); // Links to "Symmetric Key Distribution Protocols" (Topic 6)
+            extraEdges.push({ from: 63, to: 204, label: "Alternative to Block Ciphers in PGP" }); // Links to "PGP Encryption Process" (Topic 10)
+            extraEdges.push({ from: 63, to: 225, label: "Exploited or Defended in Malware Payloads" }); // Links to "Types of Malware" (Topic 11)
+            extraEdges.push({ from: 63, to: 181, label: "Used in VPN for Real-Time Encryption" }); // Links to "VPN Technologies" (Topic 9)
+
+            //Connections for Modes of Encryption
+            extraEdges.push({ from: 64, to: 102, label: "Enhances MAC Security and Flexibility" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 64, to: 124, label: "Used in Symmetric Key Protocols" }); // Links to "Symmetric Key Distribution Protocols" (Topic 6)
+            extraEdges.push({ from: 64, to: 181, label: "Determines VPN Payload Handling" }); // Links to "VPN Technologies" (Topic 9)
+            extraEdges.push({ from: 64, to: 204, label: "Affects PGP Confidentiality Mechanisms" }); // Links to "PGP Encryption Process" (Topic 10)
+            extraEdges.push({ from: 64, to: 227, label: "Mitigates Risks in Software-Level Encryption" }); // Links to "Defensive Measures Against Malware" (Topic 11)
+
+            //Connections for Security Considerations
+            extraEdges.push({ from: 65, to: 102, label: "Impact Hash-Based Integrity Schemes" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 65, to: 121, label: "Essential in Key Management Policies" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 65, to: 161, label: "Guides Selection of Authentication Methods" }); // Links to "Authentication Methods" (Topic 8)
+            extraEdges.push({ from: 65, to: 203, label: "Drives Secure Email Design" }); // Links to "Security Features and Services of PGP" (Topic 10)
+            extraEdges.push({ from: 65, to: 227, label: "Influences Malware Defense Strategy" }); // Links to "Defensive Measures Against Malware" (Topic 11)
+
+            //Connections for Introduction to Public-Key Cryptography
+            extraEdges.push({ from: 80, to: 100, label: "Requires Hashing for Digital Signatures" }); // Links to "Introduction to Cryptographic Checksums" (Week 4)
+            extraEdges.push({ from: 80, to: 120, label: "Used for Secure Key Transport" }); // Links to "Introduction to Secret Key Management" (Week 5)
+            extraEdges.push({ from: 80, to: 140, label: "Foundation of PKI" }); // Links to "Introduction to Public Key Infrastructure (PKI)" (Week 6)
+            extraEdges.push({ from: 80, to: 160, label: "Supports Entity Authentication" }); // Links to "Introduction to Authentication" (Week 7)
+            extraEdges.push({ from: 80, to: 180, label: "Used in Secure VPN Communications" }); // Links to "Introduction to VPNs" (Week 8)
+            extraEdges.push({ from: 80, to: 200, label: "Used in Email Encryption & Signing" }); // Links to "Introduction to Email Security" (Week 9)
+            extraEdges.push({ from: 80, to: 220, label: "Targets of PKC-based Exploits" }); // Links to "Introduction to Software Security" (Week 10)
+            extraEdges.push({ from: 80, to: 61, label: "Addresses Limitations of Symmetric-Key Ciphers" }); // Links to "Symmetric-Key Ciphers" (Week 2)
+            extraEdges.push({ from: 80, to: 46, label: "Solves Secure Key Exchange Problem" }); // Links to "Cybersecurity Threats" (Week 1)
+
+            //Connections for Mathematical Foundations of PKC
+            extraEdges.push({ from: 81, to: 101, label: "Used in Secure Hash Algorithms" }); // Connects to "Cryptographic Hash Functions" (Topic 5)
+            extraEdges.push({ from: 81, to: 141, label: "Foundation for Public Key Infrastructure" }); // Connects to "PKI Components and Entities" (Topic 7)
+            extraEdges.push({ from: 81, to: 163, label: "Supports Challenge-Response Protocols" }); // Connects to "Challenge-Response Authentication Protocols" (Topic 8)
+            extraEdges.push({ from: 81, to: 185, label: "Underlying Math for IPSec Protocols" }); // Connects to "IPSec Components and Session Establishment" (Topic 9)
+            extraEdges.push({ from: 81, to: 203, label: "Used in Digital Signature Services" }); // Connects to "Security Features and Services of PGP" (Topic 10)
+
+            //Connections for RSA Algorithm
+            extraEdges.push({ from: 82, to: 124, label: "Used for Secure Key Distribution" }); // Links to "Symmetric Key Distribution Protocols" (Topic 6)
+            extraEdges.push({ from: 82, to: 142, label: "Provides Foundation for Digital Certificates" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 82, to: 204, label: "Encrypts Session Key in Email Security" }); // Links to "PGP Encryption Process" (Topic 10)
+            extraEdges.push({ from: 82, to: 166, label: "Supports Public Key Authentication" }); // Links to "Authentication in Distributed Environments" (Topic 8)
+            extraEdges.push({ from: 82, to: 188, label: "Supports Key Transport in IPSec" }); // Links to "IPSec Traffic Security Protocols" (Topic 9)
+
+            //Connections for Hybrid Cryptosystems
+            extraEdges.push({ from: 83, to: 61, label: "Uses Symmetric Ciphers for Bulk Data Encryption" }); // Links to "Symmetric-Key Ciphers" (Topic 3)
+            extraEdges.push({ from: 83, to: 124, label: "Securely Distributes Session Keys via Public-Key Encryption" }); // Links to "Symmetric Key Distribution Protocols" (Topic 6)
+            extraEdges.push({ from: 83, to: 163, label: "Session Keys Enable Authentication Protocols" }); // Links to "Challenge-Response Authentication Protocols" (Topic 8)
+            extraEdges.push({ from: 83, to: 204, label: "Employed in PGP for Efficient Message Encryption" }); // Links to "PGP Encryption Process" (Topic 10)
+            extraEdges.push({ from: 83, to: 185, label: "Key Exchange in VPNs Relies on Hybrid Encryption" }); // Links to "IPSec Components and Session Establishment" (Topic 9)
+
+            //Connections for Digital Signatures
+            extraEdges.push({ from: 84, to: 101, label: "Uses Hashing for Message Integrity" }); // Links to "Cryptographic Hash Functions" (Topic 5)
+            extraEdges.push({ from: 84, to: 125, label: "Depends on Secure Key Management" }); // Links to "Security Considerations in Key Management" (Topic 6)
+            extraEdges.push({ from: 84, to: 144, label: "Relies on Trust Models for Validation" }); // Links to "Certificate Hierarchies and Trust Models" (Topic 7)
+            extraEdges.push({ from: 84, to: 166, label: "Supports Non-Repudiation in Authentication" }); // Links to "Authentication in Distributed Environments" (Topic 8)
+            extraEdges.push({ from: 84, to: 203, label: "Enables Message Origin Authentication" }); // Links to "Security Features and Services of PGP" (Topic 10)
+
+            //Connections for Introduction to Cryptographic Checksums
+            extraEdges.push({ from: 100, to: 64, label: "Supports Message Integrity" }); // Links to "Modes of Encryption" (Topic 3)
+            extraEdges.push({ from: 100, to: 84, label: "Enables Non-Repudiation via Digital Signatures" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 100, to: 121, label: "Relies on Secure Key Handling for MACs" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 100, to: 162, label: "Verifies Password Integrity via Hashing" }); // Links to "Password-Based Authentication" (Topic 7)
+            extraEdges.push({ from: 100, to: 203, label: "Used for Integrity in PGP Signatures" }); // Links to "Security Features and Services of PGP" (Topic 10)
+            extraEdges.push({ from: 100, to: 227, label: "Detects Tampering from Malware Payloads" }); // Links to "Defensive Measures Against Malware" (Topic 11)
+
+            //Connections for Cryptographic Hash Functions
+            extraEdges.push({ from: 101, to: 84, label: "Used in Digital Signatures" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 101, to: 142, label: "Supports Integrity in Digital Certificates" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 101, to: 162, label: "Used in Hashed Password Authentication" }); // Links to "Password-Based Authentication" (Topic 8)
+            extraEdges.push({ from: 101, to: 203, label: "Provides Message Integrity in PGP" }); // Links to "Security Features and Services of PGP" (Topic 10)
+            extraEdges.push({ from: 101, to: 225, label: "Targeted by Collision-Based Attacks in Malware" }); // Links to "Types of Malware" (Topic 11)
+
+            //Connections for Message Authentication Codes (MAC)
+            extraEdges.push({ from: 102, to: 61, label: "Built from Symmetric Key Primitives" }); // Links to "Symmetric-Key Ciphers" (Week 2, Topic 3)
+            extraEdges.push({ from: 102, to: 84, label: "Enhanced with Digital Signatures for Integrity" }); // Links to "Digital Signatures" (Week 3, Topic 4)
+            extraEdges.push({ from: 102, to: 124, label: "Key Distribution Required for MAC Use" }); // Links to "Symmetric Key Distribution Protocols" (Week 5, Topic 6)
+            extraEdges.push({ from: 102, to: 189, label: "Used in VPN Packet Authentication" }); // Links to "IPSec Packet Processing" (Week 8, Topic 9)
+            extraEdges.push({ from: 102, to: 203, label: "Provides Message Integrity in PGP" }); // Links to "Security Features and Services of PGP" (Week 9, Topic 10)
+            extraEdges.push({ from: 102, to: 227, label: "Defends Against Malware Tampering" }); // Links to "Defensive Measures Against Malware" (Week 10, Topic 11)
+
+            //Connections for Authenticated Encryption
+            extraEdges.push({ from: 103, to: 61, label: "Built on Symmetric-Key Ciphers" }); // Links to "Symmetric-Key Ciphers" (Week 2)
+            extraEdges.push({ from: 103, to: 83, label: "Enhances Hybrid Cryptosystems" }); // Links to "Hybrid Cryptosystems" (Week 3)
+            extraEdges.push({ from: 103, to: 122, label: "Requires Secure Session Key Establishment" }); // Links to "Session Key Establishment" (Week 5)
+            extraEdges.push({ from: 103, to: 142, label: "Used with Digital Certificates for Authenticity" }); // Links to "Digital Certificates" (Week 6)
+            extraEdges.push({ from: 103, to: 164, label: "Supports Secure Token-Based Authentication" }); // Links to "Token-Based Authentication" (Week 7)
+            extraEdges.push({ from: 103, to: 188, label: "Applied in IPSec Traffic Security Protocols" }); // Links to "IPSec Traffic Security Protocols" (Week 8)
+            extraEdges.push({ from: 103, to: 203, label: "Used in PGP for Confidentiality and Integrity" }); // Links to "Security Features and Services of PGP" (Week 9)
+            extraEdges.push({ from: 103, to: 227, label: "Prevents Tampering in Malware Payloads" }); // Links to "Defensive Measures Against Malware" (Week 10)
+
+            //Connections for Authenticated Encryption with Associated Data (AEAD)
+            extraEdges.push({ from: 104, to: 62, label: "Uses Block Cipher Modes for Encryption" }); // AEAD to "Block Ciphers and Their Design" (Topic 3)
+            extraEdges.push({ from: 104, to: 121, label: "Requires Secure Key Management" }); // AEAD to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 104, to: 163, label: "Supports Entity Authentication via Integrity Checks" }); // AEAD to "Challenge-Response Authentication Protocols" (Topic 8)
+            extraEdges.push({ from: 104, to: 188, label: "Used in IPSec ESP for Secure Packet Transmission" }); // AEAD to "IPSec Traffic Security Protocols" (Topic 9)
+
+            //Connections for Security Considerations
+            extraEdges.push({ from: 105, to: 125, label: "Informs Risks in Symmetric Key Use" }); // Links to "Security Considerations in Key Management" (Topic 6)
+            extraEdges.push({ from: 105, to: 142, label: "Supports PKI Certificate Confidentiality" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 105, to: 162, label: "Depends on Strength of Passwords" }); // Links to "Password-Based Authentication" (Topic 8)
+            extraEdges.push({ from: 105, to: 183, label: "Addresses VPN Risks and Benefits" }); // Links to "Security Risks and Benefits of VPNs" (Topic 9)
+            extraEdges.push({ from: 105, to: 204, label: "Applies to PGP Encryption Methods" }); // Links to "PGP Encryption Process" (Topic 10)
+            extraEdges.push({ from: 105, to: 227, label: "Relevant for Malware Defense Planning" }); // Links to "Defensive Measures Against Malware" (Topic 11)
+
+            //Connections for Introduction to Secret Key Management
+            extraEdges.push({ from: 120, to: 61, label: "Requires Knowledge of Symmetric Ciphers" }); // Links to "Symmetric-Key Ciphers" (Topic 3)
+            extraEdges.push({ from: 120, to: 83, label: "Supports Hybrid Encryption in PKC" }); // Links to "Hybrid Cryptosystems" (Topic 4)
+            extraEdges.push({ from: 120, to: 102, label: "Relies on MACs and Integrity Mechanisms" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 120, to: 140, label: "Supports Key Lifecycle in PKI" }); // Links to "Introduction to Public Key Infrastructure (PKI)" (Topic 7)
+            extraEdges.push({ from: 120, to: 163, label: "Enables Challenge-Response Protocols" }); // Links to "Challenge-Response Authentication Protocols" (Topic 8)
+            extraEdges.push({ from: 120, to: 185, label: "Supports IPSec Key Exchange" }); // Links to "IPSec Components and Session Establishment" (Topic 9)
+            extraEdges.push({ from: 120, to: 207, label: "Essential for Web-of-Trust Model" }); // Links to "PGP Trust Model (Web-of-Trust)" (Topic 10)
+
+            //Connections for Key Management Issues
+            extraEdges.push({ from: 121, to: 61, label: "Relies on Secure Symmetric Keys" }); // Links to "Symmetric-Key Ciphers" (Topic 3)
+            extraEdges.push({ from: 121, to: 83, label: "Supports Secure Session Key Transport" }); // Links to "Hybrid Cryptosystems" (Topic 4)
+            extraEdges.push({ from: 121, to: 101, label: "Uses Hashing for Key Authentication" }); // Links to "Cryptographic Hash Functions" (Topic 5)
+            extraEdges.push({ from: 121, to: 141, label: "Enables Public Key Validation" }); // Links to "PKI Components and Entities" (Topic 7)
+            extraEdges.push({ from: 121, to: 164, label: "Used in Token-Based Authentication" }); // Links to "Token-Based Authentication" (Topic 8)
+            extraEdges.push({ from: 121, to: 185, label: "Supports Secure VPN Sessions" }); // Links to "IPSec Components and Session Establishment" (Topic 9)
+            extraEdges.push({ from: 121, to: 206, label: "Critical for PGP Key Management" }); // Links to "PGP Key Management" (Topic 10)
+
+            //Connections for Session Key Establishment
+            extraEdges.push({ from: 122, to: 83, label: "Uses Asymmetric Encryption in Hybrid Systems" }); // Links to "Hybrid Cryptosystems" (Topic 4)
+            extraEdges.push({ from: 122, to: 144, label: "Relies on Public Key Infrastructure for Secure Key Exchange" }); // Links to "Certificate Hierarchies and Trust Models" (Topic 7)
+            extraEdges.push({ from: 122, to: 166, label: "Supports Authentication in Distributed Systems" }); // Links to "Authentication in Distributed Environments" (Topic 8)
+            extraEdges.push({ from: 122, to: 185, label: "Implemented in IPSec for Secure Communications" }); // Links to "IPSec Components and Session Establishment" (Topic 9)
+            extraEdges.push({ from: 122, to: 204, label: "Used in PGP for Email Message Confidentiality" }); // Links to "PGP Encryption Process" (Topic 10)
+
+            //Connections for Key Agreement Protocols
+            extraEdges.push({ from: 123, to: 83, label: "Relies on Public-Key Exchange" }); // Links to "Hybrid Cryptosystems" (Topic 4)
+            extraEdges.push({ from: 123, to: 84, label: "Enables Secure Key Establishment" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 123, to: 142, label: "Supports Digital Certificates" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 123, to: 144, label: "Facilitates Trust Models" }); // Links to "Certificate Hierarchies and Trust Models" (Topic 7)
+            extraEdges.push({ from: 123, to: 185, label: "Used in IPSec Session Setup" }); // Links to "IPSec Components and Session Establishment" (Topic 9)
+            extraEdges.push({ from: 123, to: 187, label: "Secures Tunnel Negotiation" }); // Links to "IPSec Modes: Transport vs. Tunnel" (Topic 9)
+
+            //Connections for Symmetric Key Distribution Protocols
+            extraEdges.push({ from: 124, to: 62, label: "Depends on Strong Cryptographic Algorithms" }); // Link to "Block Ciphers and Their Design" (Topic 3)
+            extraEdges.push({ from: 124, to: 64, label: "Uses Encryption Modes for Secure Key Transport" }); // Link to "Modes of Encryption" (Topic 3)
+            extraEdges.push({ from: 124, to: 83, label: "Can Use Public-Key Encryption for Distribution" }); // Link to "Hybrid Cryptosystems" (Topic 4)
+            extraEdges.push({ from: 124, to: 102, label: "Uses MACs for Key Integrity Verification" }); // Link to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 124, to: 163, label: "Can Be Authenticated via Challenge-Response" }); // Link to "Challenge-Response Authentication Protocols" (Topic 8)
+            extraEdges.push({ from: 124, to: 184, label: "Employed in Secure VPN Session Establishment" }); // Link to "IP Security (IPSec) Overview" (Topic 9)
+
+            //Connections for Security Considerations in Key Management
+            extraEdges.push({ from: 125, to: 65, label: "Informs Secure Key Generation and Use" }); // Links to "Security Considerations" (Topic 3)
+            extraEdges.push({ from: 125, to: 102, label: "Ensures Integrity of Keyed Authentication" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 125, to: 141, label: "Supports PKI Private Key Security" }); // Links to "PKI Components and Entities" (Topic 7)
+            extraEdges.push({ from: 125, to: 161, label: "Enhances Credential Security" }); // Links to "Authentication Methods" (Topic 8)
+            extraEdges.push({ from: 125, to: 185, label: "Used in VPN Session Key Handling" }); // Links to "IPSec Components and Session Establishment" (Topic 9)
+            extraEdges.push({ from: 125, to: 206, label: "Required for Secure PGP Key Management" }); // Links to "PGP Key Management" (Topic 10)
+            extraEdges.push({ from: 125, to: 227, label: "Mitigates Key Disclosure by Malware" }); // Links to "Defensive Measures Against Malware" (Topic 11)
+
+            //Connections for Introduction to Public Key Infrastructure (PKI)
+            extraEdges.push({ from: 140, to: 84, label: "Enables Digital Signatures with Certificate Binding" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 140, to: 125, label: "Requires Secure Private Key Handling" }); // Links to "Security Considerations in Key Management" (Topic 6)
+            extraEdges.push({ from: 140, to: 184, label: "Used in Secure VPN Communication" }); // Links to "IP Security (IPSec) Overview" (Topic 9)
+            extraEdges.push({ from: 140, to: 207, label: "Contrasts with Web-of-Trust in PGP" }); // Links to "PGP Trust Model (Web-of-Trust)" (Topic 10)
+            extraEdges.push({ from: 140, to: 161, label: "Relies on Authentication for Certificate Validation" }); // Links to "Authentication Methods" (Topic 8)
+
+            //Connections for PKI Components and Entities
+            extraEdges.push({ from: 141, to: 84, label: "Used to Support Digital Signatures" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 141, to: 161, label: "Enables Certificate-Based Authentication" }); // Links to "Authentication Methods" (Topic 8)
+            extraEdges.push({ from: 141, to: 185, label: "Provides Trust Model for IPSec" }); // Links to "IPSec Components and Session Establishment" (Topic 9)
+            extraEdges.push({ from: 141, to: 201, label: "Foundation for S/MIME Certificates" }); // Links to "Comparison of PGP and S/MIME" (Topic 10)
+            extraEdges.push({ from: 141, to: 101, label: "Ensures Authenticity with Cryptographic Hash Functions" }); // Links to "Cryptographic Hash Functions" (Topic 5)
+            extraEdges.push({ from: 141, to: 121, label: "Requires Secure Key Management" }); // Links to "Key Management Issues" (Topic 6)
+
+            //Connections for Digital certificates
+            extraEdges.push({ from: 142, to: 84, label: "Enables Trust in Public Key Ownership" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 142, to: 102, label: "Supports Key Authentication and Integrity" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 142, to: 161, label: "Used in Authentication Solutions (X.509)" }); // Links to "Authentication Methods" (Topic 8)
+            extraEdges.push({ from: 142, to: 186, label: "Used to Authenticate Users and Devices" }); // Links to "Authentication Methods in IPSec" (Topic 9)
+            extraEdges.push({ from: 142, to: 201, label: "Used in Secure Email (S/MIME Certificates)" }); // Links to "Comparison of PGP and S/MIME" (Topic 10)
+
+            //Connections for Certificate Revocation Lists (CRLs)
+            extraEdges.push({ from: 143, to: 84, label: "Revocation Ensures Signature Trustworthiness" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 143, to: 103, label: "Supports Message Non-repudiation" }); // Links to "Authenticated Encryption" (Topic 5)
+            extraEdges.push({ from: 143, to: 164, label: "Essential for Token Validation" }); // Links to "Token-Based Authentication" (Topic 8)
+            extraEdges.push({ from: 143, to: 203, label: "Validates Sender in Email Systems" }); // Links to "Security Features and Services of PGP" (Topic 10)
+            extraEdges.push({ from: 143, to: 185, label: "Used in IPSec Certificate Management" }); // Links to "IPSec Components and Session Establishment" (Topic 9)
+
+            //Connections for Certificate Hierarchies and Trust Models
+            extraEdges.push({ from: 144, to: 121, label: "Requires Secure Key Management" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 144, to: 84, label: "Supports Trust Through Digital Signatures" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 144, to: 207, label: "Forms Basis for PGP Trust Models" }); // Links to "PGP Trust Model (Web-of-Trust)" (Topic 10)
+            extraEdges.push({ from: 144, to: 166, label: "Supports Authentication in Distributed Systems" }); // Links to "Authentication in Distributed Environments" (Topic 8)
+
+            //Connections for PKI in Real-Life Applications
+            extraEdges.push({ from: 145, to: 164, label: "Supports Smartcard-Based Payments" }); // Links to "Token-Based Authentication" (Topic 8)
+            extraEdges.push({ from: 145, to: 201, label: "Used in Email Security (S/MIME)" }); // Links to "Comparison of PGP and S/MIME" (Topic 10)
+            extraEdges.push({ from: 145, to: 186, label: "Used for VPN Authentication (IPSec)" }); // Links to "Authentication Methods in IPSec" (Topic 9)
+            extraEdges.push({ from: 145, to: 84, label: "Enables Secure Web Transactions" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 145, to: 47, label: "Depends on Trust in Public Keys" }); // Links to "Security Properties" (Topic 2)
+
+            //Connections for EMV (Europay, MasterCard, and Visa)
+            extraEdges.push({ from: 146, to: 142, label: "Relies on Digital Certificates for Card Authentication" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 146, to: 84, label: "Enhances Secure Transactions with PKI Support" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 146, to: 121, label: "Requires Strong Key Management for Card Credentials" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 146, to: 161, label: "Incorporates Token-Based Authentication for Cardholders" }); // Links to "Authentication Methods" (Topic 8)
+
+            //Connections for MasterCard SecureCode and 3-D Secure Model
+            extraEdges.push({ from: 147, to: 164, label: "Implements Token-Based Authentication" }); // Links to "Token-Based Authentication" (Topic 8)
+            extraEdges.push({ from: 147, to: 84, label: "Uses Digital Signatures for Authenticity" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 147, to: 102, label: "Employs Message Authentication Codes" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 147, to: 141, label: "Relies on Trusted Certificate Authorities" }); // Links to "PKI Components and Entities" (Topic 7)
+            extraEdges.push({ from: 147, to: 47, label: "Addresses Confidentiality and Integrity in Transactions" }); // Links to "Security Properties" (Topic 2)
+            extraEdges.push({ from: 147, to: 42, label: "Applies to E-Commerce Security Domain" }); // Links to "Cybersecurity Domains" (Topic 1)
+
+            //Connections for Introduction to Authentication
+            extraEdges.push({ from: 160, to: 47, label: "Builds on Need for Authentication" }); // Links to "Security Properties" (Topic 2, Week 1)
+            extraEdges.push({ from: 160, to: 61, label: "Relies on Symmetric Key Concepts" }); // Links to "Symmetric-Key Ciphers" (Topic 3.2, Week 2)
+            extraEdges.push({ from: 160, to: 80, label: "Involves Public-Key Techniques" }); // Links to "Introduction to Public-Key Cryptography" (Topic 4.1, Week 3)
+            extraEdges.push({ from: 160, to: 103, label: "Uses Cryptographic Checksums for Integrity" }); // Links to "Authenticated Encryption" (Topic 5.4, Week 4)
+            extraEdges.push({ from: 160, to: 120, label: "Supports Secure Key Management" }); // Links to "Introduction to Secret Key Management" (Topic 6.1, Week 5)
+            extraEdges.push({ from: 160, to: 140, label: "Enabled by PKI Trust Models" }); // Links to "Introduction to Public Key Infrastructure (PKI)" (Topic 7.1, Week 6)
+            extraEdges.push({ from: 160, to: 203, label: "Provides User Verification in Email Security" }); // Links to "Security Features and Services of PGP" (Topic 10.4, Week 9)
+            extraEdges.push({ from: 160, to: 227, label: "Essential for Malware Countermeasures" }); // Links to "Defensive Measures Against Malware" (Topic 11.6, Week 10)
+
+            //Connections for Authentication Methods
+            extraEdges.push({ from: 161, to: 123, label: "Depends on Secure Key Agreement Protocols" }); // Links to "Key Agreement Protocols" (Topic 6)
+            extraEdges.push({ from: 161, to: 142, label: "Supports Digital Identity Verification" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 161, to: 102, label: "Used to Authenticate Message Integrity" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 161, to: 186, label: "Used in IPSec for Peer Authentication" }); // Links to "Authentication Methods in IPSec" (Topic 9)
+            extraEdges.push({ from: 161, to: 207, label: "Enables Identity Verification in Email Trust Model" }); // Links to "PGP Trust Model (Web-of-Trust)" (Topic 10)
+            extraEdges.push({ from: 161, to: 227, label: "Counters Unauthorized Software Access" }); // Links to "Defensive Measures Against Malware" (Topic 11)
+
+            //Connections for Password-Based Authentication
+            extraEdges.push({ from: 162, to: 46, label: "Used to Prevent Identity Spoofing" }); // Links to "Cybersecurity Threats" (Topic 2)
+            extraEdges.push({ from: 162, to: 62, label: "Works with Block Cipher Authentication" }); // Links to "Block Ciphers and Their Design" (Topic 3)
+            extraEdges.push({ from: 162, to: 104, label: "May Use HMAC for Integrity Verification" }); // Links to "Authenticated Encryption with Associated Data (AEAD)" (Topic 5)
+            extraEdges.push({ from: 162, to: 125, label: "Relies on Secure Key Management" }); // Links to "Security Considerations in Key Management" (Topic 6)
+            extraEdges.push({ from: 162, to: 142, label: "Can Be Integrated with Digital Certificates" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 162, to: 186, label: "Used as Method in IPSec Authentication" }); // Links to "Authentication Methods in IPSec" (Topic 9)
+            extraEdges.push({ from: 162, to: 227, label: "Vulnerable to Keyloggers and Malware" }); // Links to "Defensive Measures Against Malware" (Topic 11)
+
+            //Connections for Challenge-Response Authentication Protocols
+            extraEdges.push({ from: 163, to: 61, label: "Requires Strong Cipher Support" }); // Links to "Symmetric-Key Ciphers" (Topic 3)
+            extraEdges.push({ from: 163, to: 104, label: "Can Incorporate AEAD for Integrity" }); // Links to "Authenticated Encryption with Associated Data (AEAD)" (Topic 5)
+            extraEdges.push({ from: 163, to: 125, label: "Can Use Pre-Shared Keys" }); // Links to "Security Considerations in Key Management" (Topic 6)
+            extraEdges.push({ from: 163, to: 142, label: "Enabled via PKI Credentials" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 163, to: 203, label: "Provides Mutual Authentication" }); // Links to "Security Features and Services of PGP" (Topic 10)
+
+            //Connections for Token-Based Authentication
+            extraEdges.push({ from: 164, to: 121, label: "Relies on Secure Key Management" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 164, to: 142, label: "Often Uses PKI for Certificate-Based Authentication" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 164, to: 84, label: "Can Use Digital Signatures for Verification" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 164, to: 102, label: "May Include MAC for Token Integrity" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 164, to: 186, label: "Can Be Used as an Authentication Method in IPSec" }); // Links to "Authentication Methods in IPSec" (Topic 9)
+
+            //Connections for Enterprise Authentication and Single Sign-On (SSO)
+            extraEdges.push({ from: 165, to: 121, label: "Requires Secure Key Distribution for Authentication Tokens" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 165, to: 142, label: "Utilizes Digital Certificates for Federated Identity Verification" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 165, to: 182, label: "Complementary with VPNs for Unified Access Control" }); // Links to "Types of VPNs" (Topic 9)
+            extraEdges.push({ from: 165, to: 203, label: "Enhances Secure Communication via PGP Email Authentication" }); // Links to "Security Features and Services of PGP" (Topic 10)
+
+            //Connections for Authentication in Distributed Environments
+            extraEdges.push({ from: 166, to: 121, label: "Requires Secure Key Management Across Nodes" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 166, to: 144, label: "Depends on Certificate-Based Trust Model" }); // Links to "Certificate Hierarchies and Trust Models" (Topic 7)
+            extraEdges.push({ from: 166, to: 184, label: "Utilized in Secure Remote Access" }); // Links to "IP Security (IPSec) Overview" (Topic 9)
+            extraEdges.push({ from: 166, to: 142, label: "Uses Digital Certificates to Validate Entities" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 166, to: 227, label: "Mitigates Unauthorized Access via Malware" }); // Links to "Defensive Measures Against Malware" (Topic 11)
+
+            //Connections for Introduction to VPNs
+            extraEdges.push({ from: 180, to: 64, label: "Uses Symmetric-Key Ciphers for Tunnel Encryption" }); // Modes of Encryption (Topic 3)
+            extraEdges.push({ from: 180, to: 103, label: "Utilizes Authenticated Encryption for Secure Tunnels" }); // Authenticated Encryption (Topic 5)
+            extraEdges.push({ from: 180, to: 123, label: "Depends on Secure Session Key Establishment" }); // Key Agreement Protocols (Topic 6)
+            extraEdges.push({ from: 180, to: 140, label: "Requires PKI for Certificate-Based Authentication" }); // Introduction to PKI (Topic 7)
+            extraEdges.push({ from: 180, to: 161, label: "Supports Token and Certificate-Based Authentication" }); // Authentication Methods (Topic 8)
+
+            //Connections for VPN Technologies
+            extraEdges.push({ from: 181, to: 101, label: "Uses Encryption Protocols" }); // Links to "Cryptographic Hash Functions" (Topic 5)
+            extraEdges.push({ from: 181, to: 124, label: "Supports Secure Key Distribution" }); // Links to "Symmetric Key Distribution Protocols" (Topic 6)
+            extraEdges.push({ from: 181, to: 141, label: "Utilizes Digital Certificates for Secure Access" }); // Links to "PKI Components and Entities" (Topic 7)
+            extraEdges.push({ from: 181, to: 161, label: "Requires Authentication Protocols" }); // Links to "Authentication Methods" (Topic 8)
+            extraEdges.push({ from: 181, to: 201, label: "Can Complement Email Security Systems" }); // Links to "Comparison of PGP and S/MIME" (Topic 10)
+
+            //Connections for Types of VPNs
+            extraEdges.push({ from: 182, to: 124, label: "Uses Symmetric Key Distribution for Secure Channels" }); // Links to "Symmetric Key Distribution Protocols" (Topic 6)
+            extraEdges.push({ from: 182, to: 142, label: "Relies on PKI for Certificate-Based Authentication" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 182, to: 161, label: "Requires Secure User Authentication Mechanisms" }); // Links to "Authentication Methods" (Topic 8)
+            extraEdges.push({ from: 182, to: 81, label: "Secures Communication Using Public-Key Cryptography" }); // Links to "Mathematical Foundations of PKC" (Topic 4)
+            extraEdges.push({ from: 182, to: 101, label: "Ensures Data Integrity Using Cryptographic Hashes" }); // Links to "Cryptographic Hash Functions" (Topic 5)
+
+            //Connections for Security Risks and Benefits of VPNs
+            extraEdges.push({ from: 183, to: 124, label: "Requires Strong Key Distribution" }); // Links to "Symmetric Key Distribution Protocols" (Topic 6)
+            extraEdges.push({ from: 183, to: 145, label: "Enhances Security Through PKI Support" }); // Links to "PKI in Real-Life Applications" (Topic 7)
+            extraEdges.push({ from: 183, to: 160, label: "Authenticated via Entity Verification" }); // Links to "Introduction to Authentication" (Topic 8)
+            extraEdges.push({ from: 183, to: 102, label: "Uses HMAC for Integrity Protection" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 183, to: 83, label: "Uses Public Key Encryption for Key Exchange" }); // Links to "Hybrid Cryptosystems" (Topic 4)
+
+            //Connections for IP Security (IPSec) Overview
+            extraEdges.push({ from: 184, to: 121, label: "Uses Symmetric Key Management for Secure Channels" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 184, to: 84, label: "Combines with Digital Signatures for Authentication" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 184, to: 102, label: "Ensures Message Integrity with MACs" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 184, to: 61, label: "Encrypts IP Packets Using Symmetric-Key Ciphers" }); // Links to "Symmetric-Key Ciphers" (Topic 3)
+            extraEdges.push({ from: 184, to: 141, label: "Relies on PKI for Authentication and Key Exchange" }); // Links to "PKI Components and Entities" (Topic 7)
+            extraEdges.push({ from: 184, to: 160, label: "Provides Entity Authentication in VPN Setup" }); // Links to "Introduction to Authentication" (Topic 8)
+
+            //Connections for IPSec Components and Session Establishment
+            extraEdges.push({ from: 185, to: 124, label: "Uses Secure Key Distribution Mechanisms" }); // Links to "Symmetric Key Distribution Protocols" (Topic 6)
+            extraEdges.push({ from: 185, to: 141, label: "Relies on PKI for Key Authentication" }); // Links to "PKI Components and Entities" (Topic 7)
+            extraEdges.push({ from: 185, to: 164, label: "Supports Token and Key-based Authentication" }); // Links to "Token-Based Authentication" (Topic 8)
+            extraEdges.push({ from: 185, to: 102, label: "Provides Integrity with MAC Algorithms" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 185, to: 83, label: "Combines with Hybrid Cryptosystems for Secure Exchange" }); // Links to "Hybrid Cryptosystems" (Topic 4)
+
+            //Connections for Authentication Methods in IPSec
+            extraEdges.push({ from: 186, to: 142, label: "Uses Certificates for Peer Verification" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 186, to: 164, label: "Supports Token-Based Methods Like Public Key or Pre-shared Keys" }); // Links to "Token-Based Authentication" (Topic 8)
+            extraEdges.push({ from: 186, to: 122, label: "Relies on Secure Session Key Exchange" }); // Links to "Session Key Establishment" (Topic 6)
+            extraEdges.push({ from: 186, to: 102, label: "Enhances Message Authentication" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 186, to: 82, label: "May Use Asymmetric Key Methods" }); // Links to "RSA Algorithm" (Topic 4)
+
+            //Connections for IPSec Modes: Transport vs. Tunnel
+            extraEdges.push({ from: 187, to: 161, label: "Relies on Authentication Methods" }); // Links to "Authentication Methods" (Topic 8)
+            extraEdges.push({ from: 187, to: 121, label: "Uses Secret Keys for Encryption" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 187, to: 101, label: "Provides Confidentiality and Integrity" }); // Links to "Cryptographic Hash Functions" (Topic 5)
+            extraEdges.push({ from: 187, to: 83, label: "Secures with Hybrid Cryptosystems" }); // Links to "Hybrid Cryptosystems" (Topic 4)
+            extraEdges.push({ from: 187, to: 61, label: "Applies Symmetric-Key Encryption" }); // Links to "Symmetric-Key Ciphers" (Topic 3)
+
+            //Connections for IPSec Traffic Security Protocols
+            extraEdges.push({ from: 188, to: 122, label: "Depends on Secure Session Key Establishment" }); // Links to "Session Key Establishment" (Topic 6)
+            extraEdges.push({ from: 188, to: 84, label: "Builds on Digital Signatures for Authentication" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 188, to: 102, label: "Uses HMAC for Integrity Protection" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 188, to: 164, label: "Relies on Token-Based Authentication Methods" }); // Links to "Token-Based Authentication" (Topic 8)
+            extraEdges.push({ from: 188, to: 142, label: "Integrates with PKI for Secure Key Exchange" }); // Links to "Digital Certificates" (Topic 7)
+
+            //Connections for IPSec Packet Processing
+            extraEdges.push({ from: 189, to: 64, label: "Uses Symmetric Ciphers for Payload Encryption" }); // Links to "Modes of Encryption" (Topic 3)
+            extraEdges.push({ from: 189, to: 83, label: "Employs Hybrid Cryptosystems in Key Exchange" }); // Links to "Hybrid Cryptosystems" (Topic 4)
+            extraEdges.push({ from: 189, to: 103, label: "Supports Authenticated Encryption Mechanisms" }); // Links to "Authenticated Encryption" (Topic 5)
+            extraEdges.push({ from: 189, to: 124, label: "Relies on Key Distribution Protocols" }); // Links to "Symmetric Key Distribution Protocols" (Topic 6)
+            extraEdges.push({ from: 189, to: 142, label: "Applies Digital Certificates for Authentication" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 189, to: 161, label: "Involves Challenge-Response Authentication Methods" }); // Links to "Authentication Methods" (Topic 8)
+
+            //Connections for Combining ESP and AH
+            extraEdges.push({ from: 190, to: 103, label: "Uses HMAC from Authenticated Encryption" }); // Links to "Authenticated Encryption" (Topic 5)
+            extraEdges.push({ from: 190, to: 122, label: "Requires Secure Session Key Establishment" }); // Links to "Session Key Establishment" (Topic 6)
+            extraEdges.push({ from: 190, to: 142, label: "Authenticated using Digital Certificates" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 190, to: 163, label: "Supports Challenge-Response Authentication" }); // Links to "Challenge-Response Authentication Protocols" (Topic 8)
+            extraEdges.push({ from: 190, to: 64, label: "Encrypts with Symmetric Modes like CBC" }); // Links to "Modes of Encryption" (Topic 3)
+
+            //Connections for Introduction to Email Security
+            extraEdges.push({ from: 200, to: 80, label: "Uses PKC for Secure Email" }); // Links to "Introduction to Public-Key Cryptography" (Topic 4.1)
+            extraEdges.push({ from: 200, to: 47, label: "Provides Confidentiality, Integrity, Authentication" }); // Links to "Security Properties" (Topic 2)
+            extraEdges.push({ from: 200, to: 84, label: "Relies on Digital Signatures for Authenticity" }); // Links to "Digital Signatures" (Topic 4.5)
+            extraEdges.push({ from: 200, to: 61, label: "Uses Symmetric Ciphers for Message Encryption" }); // Links to "Symmetric-Key Ciphers" (Topic 3.2)
+            extraEdges.push({ from: 200, to: 101, label: "Uses Cryptographic Hashes for Integrity" }); // Links to "Cryptographic Hash Functions" (Topic 5.2)
+            extraEdges.push({ from: 200, to: 145, label: "Trust Built on Web-of-Trust or PKI" }); // Links to "PKI in Real-Life Applications" (Topic 7.6)
+            extraEdges.push({ from: 200, to: 161, label: "Requires Authentication Mechanisms" }); // Links to "Authentication Methods" (Topic 8.2)
+            extraEdges.push({ from: 200, to: 181, label: "Alternative to Secure Email Tunnels" }); // Links to "VPN Technologies" (Topic 9.2)
+            extraEdges.push({ from: 200, to: 225, label: "Can Be Targeted by Malware" }); // Links to "Types of Malware" (Topic 11.4)
+
+            //Connections for Comparison of PGP and S/MIME
+            extraEdges.push({ from: 201, to: 144, label: "Uses Different Trust Models (Web-of-Trust vs PKI)" }); // Links to "Certificate Hierarchies and Trust Models" (Topic 7)
+            extraEdges.push({ from: 201, to: 84, label: "Applies Digital Signatures for Authentication" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 201, to: 164, label: "Provides Authentication through Certificate or Key-Based Identity" }); // Links to "Token-Based Authentication" (Topic 8)
+            extraEdges.push({ from: 201, to: 47, label: "Enhances Message Integrity and Confidentiality" }); // Links to "Security Properties" (Topic 2)
+            extraEdges.push({ from: 201, to: 83, label: "Encrypts Session Keys with Public Keys" }); // Links to "Hybrid Cryptosystems" (Topic 4)
+            extraEdges.push({ from: 201, to: 101, label: "Uses Hash Functions for Message Integrity" }); // Links to "Cryptographic Hash Functions" (Topic 5)
+            extraEdges.push({ from: 201, to: 124, label: "Secure Key Management Required for Confidentiality" }); // Links to "Symmetric Key Distribution Protocols" (Topic 6)
+
+            //Connections for PGP (Pretty Good Privacy) Overview
+            extraEdges.push({ from: 202, to: 83, label: "Secures Email & Files using Hybrid Encryption" }); // Links to "Hybrid Cryptosystems" (Topic 4)
+            extraEdges.push({ from: 202, to: 84, label: "Uses Digital Signatures for Integrity & Non-Repudiation" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 202, to: 121, label: "Requires Secure Key Management" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 202, to: 144, label: "Implements Web-of-Trust Model" }); // Links to "Certificate Hierarchies and Trust Models" (Topic 7)
+            extraEdges.push({ from: 202, to: 161, label: "Requires Entity Authentication for Signing" }); // Links to "Authentication Methods" (Topic 8)
+
+            //Connections for Security Features and Services of PGP
+            extraEdges.push({ from: 203, to: 61, label: "Uses Symmetric-Key Ciphers for Confidentiality" }); // Links to "Symmetric-Key Ciphers" (Topic 3)
+            extraEdges.push({ from: 203, to: 101, label: "Provides Integrity via Hash Functions" }); // Links to "Cryptographic Hash Functions" (Topic 5)
+            extraEdges.push({ from: 203, to: 102, label: "Employs Message Authentication Codes (MAC)" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 203, to: 122, label: "Involves Session Key Establishment" }); // Links to "Session Key Establishment" (Topic 6)
+            extraEdges.push({ from: 203, to: 144, label: "Utilizes Certificate Hierarchies and Trust Models" }); // Links to "Certificate Hierarchies and Trust Models" (Topic 7)
+            extraEdges.push({ from: 203, to: 161, label: "Supports Origin Authentication Methods" }); // Links to "Authentication Methods" (Topic 8)
+
+            //Connections for PGP Encryption Process
+            extraEdges.push({ from: 204, to: 83, label: "Uses Hybrid Cryptosystem with Session Key" }); // Links to "Hybrid Cryptosystems" (Topic 4)
+            extraEdges.push({ from: 204, to: 122, label: "Requires Secure Session Key Distribution" }); // Links to "Session Key Establishment" (Topic 6)
+            extraEdges.push({ from: 204, to: 82, label: "Uses Public-Key for Key Exchange" }); // Links to "RSA Algorithm" (Topic 4)
+            extraEdges.push({ from: 204, to: 47, label: "Provides Message Confidentiality and Authentication" }); // Links to "Security Properties" (Topic 2)
+            extraEdges.push({ from: 204, to: 84, label: "Utilizes Digital Signatures for Integrity" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 204, to: 101, label: "Applies Hashing for Signature Generation" }); // Links to "Cryptographic Hash Functions" (Topic 5)
+            extraEdges.push({ from: 204, to: 61, label: "Encrypts Message Content for Confidentiality" }); // Links to "Symmetric-Key Ciphers" (Topic 3)
+
+            //Connections for PGP Message Format
+            extraEdges.push({ from: 205, to: 122, label: "Uses Hybrid Encryption for Confidentiality" }); // Links to "Session Key Establishment" (Topic 6)
+            extraEdges.push({ from: 205, to: 84, label: "Applies Digital Signatures for Authentication" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 205, to: 101, label: "Includes Hash Digest for Message Integrity" }); // Links to "Cryptographic Hash Functions" (Topic 5)
+            extraEdges.push({ from: 205, to: 144, label: "Depends on PKI Trust Model for Key Management" }); // Links to "Certificate Hierarchies and Trust Models" (Topic 7)
+            extraEdges.push({ from: 205, to: 163, label: "Ensures Sender Verification via Digital Signing" }); // Links to "Challenge-Response Authentication Protocols" (Topic 8)
+
+            //Connections for PGP Key Management
+            extraEdges.push({ from: 206, to: 121, label: "Requires Secure Key Storage and Revocation" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 206, to: 144, label: "Differs from X.509 Certificate-Based Trust" }); // Links to "Certificate Hierarchies and Trust Models" (Topic 7)
+            extraEdges.push({ from: 206, to: 161, label: "Enables Public Key-Based User Authentication" }); // Links to "Authentication Methods" (Topic 8)
+            extraEdges.push({ from: 206, to: 84, label: "Supports Digital Signatures with Trust Model" }); // Links to "Digital Signatures" (Topic 4)
+
+            //Connections for PGP Trust Model (Web-of-Trust)
+            extraEdges.push({ from: 207, to: 144, label: "Alternative to Hierarchical Trust (PKI)" }); // Links to "Certificate Hierarchies and Trust Models" (Topic 7)
+            extraEdges.push({ from: 207, to: 166, label: "Supports Decentralized Entity Authentication" }); // Links to "Authentication in Distributed Environments" (Topic 8)
+            extraEdges.push({ from: 207, to: 101, label: "Relies on Integrity via Hash Functions" }); // Links to "Cryptographic Hash Functions" (Topic 5)
+            extraEdges.push({ from: 207, to: 103, label: "Enables Authenticated Encryption" }); // Links to "Authenticated Encryption" (Topic 5)
+            extraEdges.push({ from: 207, to: 83, label: "Built on Hybrid Cryptosystems" }); // Links to "Hybrid Cryptosystems" (Topic 4)
+
+            //Connections for PGP Message Transmission and Reception
+            extraEdges.push({ from: 208, to: 124, label: "Relies on Key Distribution" }); // Links to "Symmetric Key Distribution Protocols" (Topic 6)
+            extraEdges.push({ from: 208, to: 145, label: "Secures Emails Using PKC" }); // Links to "PKI in Real-Life Applications" (Topic 7)
+            extraEdges.push({ from: 208, to: 84, label: "Uses Digital Signatures for Authentication" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 208, to: 103, label: "Encrypts Message Content" }); // Links to "Authenticated Encryption" (Topic 5)
+            extraEdges.push({ from: 208, to: 166, label: "Counters Message Forgery and Replay" }); // Links to "Authentication in Distributed Environments" (Topic 8)
+            extraEdges.push({ from: 208, to: 188, label: "Ensures Confidentiality & Integrity" }); // Links to "IPSec Traffic Security Protocols" (Topic 9)
+
+            //Connections for Introduction to Software Security
+            extraEdges.push({ from: 220, to: 46, label: "Relies on Understanding Threats" }); // Links to "Cybersecurity Threats" (Topic 2)
+            extraEdges.push({ from: 220, to: 60, label: "Uses Cryptographic Defenses" }); // Links to "Introduction to Cryptography" (Topic 3)
+            extraEdges.push({ from: 220, to: 104, label: "Uses Hashing for Integrity" }); // Links to "Authenticated Encryption with Associated Data (AEAD)" (Topic 5)
+            extraEdges.push({ from: 220, to: 121, label: "Depends on Proper Key Storage" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 220, to: 141, label: "Uses Certificates for Trusted Code" }); // Links to "PKI Components and Entities" (Topic 7)
+            extraEdges.push({ from: 220, to: 160, label: "Needs Strong Authentication" }); // Links to "Introduction to Authentication" (Topic 8)
+
+            //Connections for Understanding Malware
+            extraEdges.push({ from: 223, to: 47, label: "Targets Confidentiality, Integrity, Availability" }); // Links to "Security Properties" (Topic 2)
+            extraEdges.push({ from: 223, to: 61, label: "May Exploit Symmetric-Key Cipher Weaknesses" }); // Links to "Symmetric-Key Ciphers" (Topic 3)
+            extraEdges.push({ from: 223, to: 101, label: "May Alter or Forge Checksums" }); // Links to "Cryptographic Hash Functions" (Topic 5)
+            extraEdges.push({ from: 223, to: 142, label: "Can Compromise Digital Certificates" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 223, to: 163, label: "Bypasses Authentication Protocols" }); // Links to "Challenge-Response Authentication Protocols" (Topic 8)
+            extraEdges.push({ from: 223, to: 183, label: "Tunnels Malware via VPN Channels" }); // Links to "Security Risks and Benefits of VPNs" (Topic 9)
+            extraEdges.push({ from: 223, to: 203, label: "Can Compromise Email Security" }); // Links to "Security Features and Services of PGP" (Topic 10)
+
+            //Connections for Malware Classification
+            extraEdges.push({ from: 224, to: 46, label: "Depends on Attack Methods and Behaviors" }); // Links to "Cybersecurity Threats" (Topic 2)
+            extraEdges.push({ from: 224, to: 101, label: "Utilizes Cryptographic Tools for Obfuscation" }); // Links to "Cryptographic Hash Functions" (Topic 5)
+            extraEdges.push({ from: 224, to: 162, label: "Bypasses Entity Authentication Methods" }); // Links to "Password-Based Authentication" (Topic 8)
+            extraEdges.push({ from: 224, to: 180, label: "Circumvents VPN Protections" }); // Links to "Introduction to VPNs" (Topic 9)
+            extraEdges.push({ from: 224, to: 143, label: "Avoids Certificate Revocation Checks" }); // Links to "Certificate Revocation Lists (CRLs)" (Topic 7)
+            extraEdges.push({ from: 224, to: 62, label: "Injected via Symmetric Ciphers in Malware Payloads" }); // Links to "Block Ciphers and Their Design" (Topic 3)
+            extraEdges.push({ from: 224, to: 102, label: "Forges Message Authenticators" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+
+            //Connections for Types of Malware
+            extraEdges.push({ from: 225, to: 84, label: "Enables Execution of Malicious Payloads" }); // Links to "Digital Signatures" (Topic 4)
+            extraEdges.push({ from: 225, to: 101, label: "Targeted by Hash-Based Integrity Checks" }); // Links to "Cryptographic Hash Functions" (Topic 5)
+            extraEdges.push({ from: 225, to: 121, label: "Exploits Poor Key Management" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 225, to: 161, label: "Circumvents Weak Authentication Mechanisms" }); // Links to "Authentication Methods" (Topic 8)
+            extraEdges.push({ from: 225, to: 183, label: "Bypasses VPN Tunnels via Exploits" }); // Links to "Security Risks and Benefits of VPNs" (Topic 9)
+            extraEdges.push({ from: 225, to: 208, label: "Delivered via Email Attachments" }); // Links to "PGP Message Transmission and Reception" (Topic 10)
+
+            //Connections for Advanced Persistent Threats (APTs)
+            extraEdges.push({ from: 226, to: 121, label: "Exploits Long-Term Vulnerabilities" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 226, to: 161, label: "Bypasses Authentication Mechanisms" }); // Links to "Authentication Methods" (Topic 8)
+            extraEdges.push({ from: 226, to: 46, label: "Initiated via Social Engineering or Phishing" }); // Links to "Cybersecurity Threats" (Topic 2)
+            extraEdges.push({ from: 226, to: 184, label: "Uses Encrypted Channels for Stealth" }); // Links to "IP Security (IPSec) Overview" (Topic 9)
+            extraEdges.push({ from: 226, to: 202, label: "Often Delivered Through Malicious Email Attachments" }); // Links to "PGP (Pretty Good Privacy) Overview" (Topic 10)
+            extraEdges.push({ from: 226, to: 103, label: "Evades Detection Using Polymorphic Malware" }); // Links to "Authenticated Encryption" (Topic 5)
+            extraEdges.push({ from: 226, to: 83, label: "Compromises Software to Establish Backdoors" }); // Links to "Hybrid Cryptosystems" (Topic 4)
+
+            //Connections for Defensive Measures Against Malware
+            extraEdges.push({ from: 227, to: 203, label: "Uses Email Security Protocols to Prevent Malware Entry" }); // Links to "Security Features and Services of PGP" (Topic 10)
+            extraEdges.push({ from: 227, to: 180, label: "Uses Secure Tunnels to Isolate Malware Spread" }); // Links to "Introduction to VPNs" (Topic 9)
+            extraEdges.push({ from: 227, to: 162, label: "Requires Strong Authentication to Prevent Unauthorized Code Execution" }); // Links to "Password-Based Authentication" (Topic 8)
+            extraEdges.push({ from: 227, to: 142, label: "Relies on Trusted Certificates to Prevent Malware Execution" }); // Links to "Digital Certificates" (Topic 7)
+            extraEdges.push({ from: 227, to: 121, label: "Enforces Key Protection to Prevent Malware Key Theft" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 227, to: 102, label: "Uses MACs and Hashes to Verify File Integrity" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 227, to: 83, label: "Blocks Executables Without Valid Digital Signatures" }); // Links to "Hybrid Cryptosystems" (Topic 4)
+            extraEdges.push({ from: 227, to: 64, label: "Encrypts Malware Communications for Analysis" }); // Links to "Modes of Encryption" (Topic 3)
+            extraEdges.push({ from: 227, to: 46, label: "Mitigates Malware through Fundamental Threat Awareness" }); // Links to "Cybersecurity Threats" (Topic 2)
+
+            //Connections for Understanding Buffer Overflows
+            extraEdges.push({ from: 228, to: 82, label: "Exploits Memory Safety Flaws in Code" }); // Links to "RSA Algorithm" (Topic 4)
+            extraEdges.push({ from: 228, to: 102, label: "Violates Integrity with Unchecked Inputs" }); // Links to "Message Authentication Codes (MAC)" (Topic 5)
+            extraEdges.push({ from: 228, to: 125, label: "Can Bypass Key Protections if Mismanaged" }); // Links to "Security Considerations in Key Management" (Topic 6)
+            extraEdges.push({ from: 228, to: 162, label: "Evades Authentication by Overwriting Return Addresses" }); // Links to "Password-Based Authentication" (Topic 7)
+
+            //Connections for Program Memory Layout
+            extraEdges.push({ from: 229, to: 166, label: "Requires Precise Memory Layout Knowledge" }); // Links to "Authentication in Distributed Environments" (Topic 8)
+            extraEdges.push({ from: 229, to: 125, label: "Impacts Key Security Protocols" }); // Links to "Security Considerations in Key Management" (Topic 6)
+            extraEdges.push({ from: 229, to: 104, label: "Bypasses Encryption Safeguards" }); // Links to "Authenticated Encryption with Associated Data (AEAD)" (Topic 5)
+            extraEdges.push({ from: 229, to: 65, label: "Circumvents Cryptographic Protections" }); // Links to "Security Considerations" (Topic 3)
+
+            //Connections for Stack-Based Buffer Overflow Attacks
+            extraEdges.push({ from: 230, to: 166, label: "Exploits Weak Authentication in Legacy Systems" }); // Links to "Authentication in Distributed Environments" (Topic 8)
+            extraEdges.push({ from: 230, to: 101, label: "Violates Message Integrity and Can Lead to Arbitrary Code Execution" }); // Links to "Cryptographic Hash Functions" (Topic 5)
+            extraEdges.push({ from: 230, to: 61, label: "Undermines Confidentiality via Memory Disclosure" }); // Links to "Symmetric-Key Ciphers" (Topic 3)
+            extraEdges.push({ from: 230, to: 46, label: "Targets Vulnerabilities Leading to Confidentiality and Availability Breaches" }); // Links to "Cybersecurity Threats" (Topic 2)
+            extraEdges.push({ from: 230, to: 121, label: "Circumvents Key Storage Protections via Stack Exploits" }); // Links to "Key Management Issues" (Topic 6)
+            extraEdges.push({ from: 230, to: 142, label: "Bypasses Certificate Validation in Poorly Secured Applications" }); // Links to "Digital Certificates" (Topic 7)
+
+            //Connections for Buffer Overflow Exploitation Techniques
+            extraEdges.push({ from: 231, to: 161, label: "Exploits Authentication Weaknesses" }); // Links to "Authentication Methods" (Topic 8)
+            extraEdges.push({ from: 231, to: 103, label: "Bypasses Integrity Protections" }); // Links to "Authenticated Encryption" (Topic 5)
+            extraEdges.push({ from: 231, to: 47, label: "Violates Integrity and Availability" }); // Links to "Security Properties" (Topic 2)
+            extraEdges.push({ from: 231, to: 125, label: "Undermines Key Confidentiality" }); // Links to "Security Considerations in Key Management" (Topic 6)
+
+            //Connections for Defenses Against Buffer Overflow Attacks
+            extraEdges.push({ from: 232, to: 166, label: "Uses Strong Authentication to Prevent Exploitation" }); // Links to "Authentication in Distributed Environments" (Topic 8)
+            extraEdges.push({ from: 232, to: 125, label: "Depends on Secure Key Handling to Limit Exploit Impact" }); // Links to "Security Considerations in Key Management" (Topic 6)
+            extraEdges.push({ from: 232, to: 104, label: "May Use AEAD to Ensure Integrity of Inputs" }); // Links to "Authenticated Encryption with Associated Data (AEAD)" (Topic 5)
+            extraEdges.push({ from: 232, to: 62, label: "Requires Knowledge of Encryption to Understand Overflows in Cipher Implementations" }); // Links to "Block Ciphers and Their Design" (Topic 3)
+            extraEdges.push({ from: 232, to: 48, label: "Related to Threats of Memory Exploits and Software Vulnerabilities" }); // Links to "Achieving Security" (Topic 2)
+
+        }
+        createRelations();
+
+        function updateGraph(view) {
+            circularButton.classList.remove("active");
+            timelineButton.classList.remove("active");
+            if (view === "circular") {
+                createCircularGraph();
+                circularButton.classList.add("active");
+            } else {
+                createTimelineGraph();
+                timelineButton.classList.add("active");
+            }
+            network.setData({ nodes: nodes, edges: edges });
+
+            if (extraEdgesVisible) {
+                edges.add(extraEdges);
+            }
+            
+        }
+
+
+
+        createCircularGraph();
+
+
+
+        var network = new vis.Network(container, { nodes: nodes, edges: edges }, { physics: false });
+
+        toggleExtraButton.addEventListener("click", function () {
+        extraEdgesVisible = !extraEdgesVisible;
+        if (extraEdgesVisible) {
+          edges.add(extraEdges);
+        } else {
+          // Remove the extra edges by ID
+          const extraEdgeIds = extraEdges.map(edge => edge.id);
+          edges.remove(extraEdgeIds);
+        }
+      });
+        circularButton.addEventListener("click", () => updateGraph("circular"));
+        timelineButton.addEventListener("click", () => updateGraph("timeline"));
+    });
+    </script>
+</body>
+</html>
