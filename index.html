@@ -24,9 +24,18 @@
         <section id="mindmap-section">
             <h2>Cybersecurity<br/>Mind Map</h2>
             <div class="button-group">
-                <button class="toggle-button active" id="circularView">Circular View</button>
-                <button class="toggle-button" id="timelineView">Timeline View</button>
-                <button id="toggleExtraEdges">Toggle Extra Connections</button>
+                <button id="nightModeButton" class="night-toggle" aria-label="Toggle Night Mode">
+                    <svg viewBox="0 0 24 24" class="moon-icon">
+                        <path d="M21 12.79A9 9 0 0111.21 3a7 7 0 109.79 9.79z" />
+                    </svg>
+                </button>
+
+                <div class="inbuttons">
+                    <button class="toggle-button active fh" id="circularView">Circular View</button>
+                    <button class="toggle-button fh" id="timelineView">Timeline View</button>
+                </div>
+
+                <button id="toggleExtraEdges" class="text-toggle">Extra Connections</button>
             </div>
             <div id="mindmap" style="height: 600px;"></div>
         </section>
@@ -38,6 +47,8 @@
         var circularButton = document.getElementById("circularView");
         var timelineButton = document.getElementById("timelineView");
         var toggleExtraButton = document.getElementById("toggleExtraEdges");
+        var nightModeButton = document.getElementById("nightModeButton");
+
         var nodes = new vis.DataSet();
         var edges = new vis.DataSet();
 
@@ -54,6 +65,11 @@
       
       // Whether extra edges are currently visible
       let extraEdgesVisible = false;
+
+      // --- NIGHT MODE TOGGLE LOGIC ---
+      nightModeButton.addEventListener("click", function () {
+        document.body.classList.toggle("night-mode");
+      });
 
         function getTopicsForWeek(week) {
             const topics = {
@@ -792,15 +808,16 @@
         var network = new vis.Network(container, { nodes: nodes, edges: edges }, { physics: false });
 
         toggleExtraButton.addEventListener("click", function () {
-        extraEdgesVisible = !extraEdgesVisible;
-        if (extraEdgesVisible) {
-          edges.add(extraEdges);
-        } else {
-          // Remove the extra edges by ID
-          const extraEdgeIds = extraEdges.map(edge => edge.id);
-          edges.remove(extraEdgeIds);
-        }
-      });
+            toggleExtraButton.classList.toggle('active');
+            extraEdgesVisible = !extraEdgesVisible;
+            if (extraEdgesVisible) {
+              edges.add(extraEdges);
+            } else {
+              // Remove the extra edges by ID
+              const extraEdgeIds = extraEdges.map(edge => edge.id);
+              edges.remove(extraEdgeIds);
+            }
+          });
         circularButton.addEventListener("click", () => updateGraph("circular"));
         timelineButton.addEventListener("click", () => updateGraph("timeline"));
     });

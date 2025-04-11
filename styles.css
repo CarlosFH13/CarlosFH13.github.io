@@ -84,11 +84,21 @@ p {
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
     background: white;
 }
+
 .button-group {
     display: flex;
     gap: 10px;
     margin-bottom: 10px;
+    position: relative;
+    align-items: center;
+    gap: 10px;
+    left: 6%;
 }
+
+.fh {
+    height:100%;
+}
+
 .toggle-button {
     padding: 10px 15px;
     border: none;
@@ -100,4 +110,145 @@ p {
 .toggle-button.active {
     background-color: #6B2C91;
     color: white;
+}
+
+
+
+/* NIGHT MODE OVERRIDES */
+body.night-mode {
+    background-color: #1c1c1c; /* Dark background */
+    color: #ccc;              /* Light text */
+}
+
+body.night-mode header {
+    background-color: #3f1361; /* Darker purple for header */
+}
+
+body.night-mode #mindmap {
+    background-color: #333; /* Dark background inside the mindmap container */
+    border: 1px solid #555; 
+}
+
+body.night-mode .toggle-button {
+    background-color: #444; 
+    color: #ccc;
+}
+
+body.night-mode .toggle-button.active {
+    background-color: #6B2C91;
+    color: #fff;
+}
+
+body.night-mode nav ul li a {
+    color: #ddd;
+}
+
+/* --- NIGHT TOGGLE (CIRCLE) --- */
+.night-toggle {
+    /* Circle shape */
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    
+    /* Visual style */
+    border: 2px solid #6B2C91;
+    background: transparent;
+    color: #6B2C91;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s, transform 0.2s;
+}
+
+/* Make the moon icon bigger */
+.night-toggle .moon-icon {
+    width: 26px;
+    height: 26px;
+    fill: #6B2C91;
+    transition: fill 0.3s;
+}
+
+/* Hover: highlight the circle & moon */
+.night-toggle:hover {
+    background-color: #6B2C91;
+    color: white;
+}
+.night-toggle:hover .moon-icon {
+    fill: white;
+}
+
+/* Active: stay purple-filled with white moon */
+.night-toggle.active {
+    background-color: #6B2C91;
+    color: white;
+}
+.night-toggle.active .moon-icon {
+    fill: white;
+}
+
+
+/* --- TEXT TOGGLE FOR EXTRA CONNECTIONS --- */
+.text-toggle {
+    /* Enough width for the text + consistent style */
+    padding: 10px 20px;
+    border: 2px solid #6B2C91;
+    border-radius: 8px;
+    
+    background: transparent;
+    color: #6B2C91;
+    
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s;
+}
+
+/* Hover: fill with purple, white text */
+.text-toggle:hover {
+    background-color: #6B2C91;
+    color: white;
+}
+
+/* Active: once clicked, stays purple/white */
+.text-toggle.active {
+    background-color: #6B2C91;
+    color: white;
+}
+
+
+/* --- NIGHT MODE OVERRIDES --- */
+body.night-mode .night-toggle {
+    border-color: #F8DD68; /* purple border -> yellow border */
+}
+
+/* On hover or active in Night Mode, fill with yellow */
+body.night-mode .night-toggle:hover,
+body.night-mode .night-toggle.active {
+    background-color: #F8DD68; /* fill circle yellow */
+}
+
+/* Moon icon color in Night Mode: default yellow, black on hover/active */
+body.night-mode .night-toggle .moon-icon {
+    fill: #F8DD68;
+}
+body.night-mode .night-toggle:hover .moon-icon,
+body.night-mode .night-toggle.active .moon-icon {
+    fill: #1c1c1c;
+}
+
+/* Text toggle in Night Mode: purple -> yellow border */
+body.night-mode .text-toggle {
+    border-color: #F8DD68;
+    color: #F8DD68;
+}
+body.night-mode .text-toggle:hover {
+    background-color: #F8DD68;
+    color: #1c1c1c;
+}
+/* Stay in 'active' style in Night Mode if clicked */
+body.night-mode .text-toggle.active {
+    background-color: #F8DD68;
+    color: #1c1c1c;
 }
