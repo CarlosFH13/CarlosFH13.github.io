@@ -15,9 +15,7 @@
         <nav>
             <ul class="nav-list">
                 <li><a href="#home">Cybersecurity</a></li>
-                <li><a href="#cu2">Course unit 2</a></li>
-                <li><a href="#cu3">Course unit 3</a></li>
-                <li><a href="#cu4">Course unit 4</a></li>
+                <li><a href="#cu2">Mindmap generator</a></li>
             </ul>
         </nav>
     </header>
@@ -30,6 +28,7 @@
                     <svg viewBox="0 0 24 24" class="moon-icon">
                         <path d="M21 12.79A9 9 0 0111.21 3a7 7 0 109.79 9.79z" />
                     </svg>
+                <button id="openPDF" onclick="openPDF()" class="text-toggle">Open PDF</button>
                 </button>
 
                 <div class="inbuttons">
@@ -44,6 +43,7 @@
     </main>
 
     <script>
+    var filePath = "cybersec/";
     document.addEventListener("DOMContentLoaded", function () {
         var container = document.getElementById("mindmap");
         var circularButton = document.getElementById("circularView");
@@ -56,23 +56,25 @@
         
 
         // ---------------------------------
-      // Extra edges for toggling
-      // ---------------------------------
-      // For example, let's say you want extra connections between:
-      //   - The "Cybersecurity" center node (id=1) and Week 2 (id=3)
-      //   - "Week 2" (id=3) and "Week 3" (id=4)
-      //   - A random topic within Week 4 to a random topic within Week 7
-      // Adjust these IDs and connections however you prefer:
-      var extraEdges = [
-      ];
+        // Extra edges for toggling
+        // ---------------------------------
+        // For example, let's say you want extra connections between:
+        //   - The "Cybersecurity" center node (id=1) and Week 2 (id=3)
+        //   - "Week 2" (id=3) and "Week 3" (id=4)
+        //   - A random topic within Week 4 to a random topic within Week 7
+        // Adjust these IDs and connections however you prefer:
+        var extraEdges = [
+        ];
       
-      // Whether extra edges are currently visible
-      let extraEdgesVisible = false;
+        // Whether extra edges are currently visible
+        let extraEdgesVisible = false;
 
-      // --- NIGHT MODE TOGGLE LOGIC ---
-      nightModeButton.addEventListener("click", function () {
-        document.body.classList.toggle("night-mode");
-      });
+        
+
+        // --- NIGHT MODE TOGGLE LOGIC ---
+        nightModeButton.addEventListener("click", function () {
+            document.body.classList.toggle("night-mode");
+        });
 
         function getTopicsForWeek(week) {
             const topics = {
@@ -92,81 +94,119 @@
         }
 
         function createTimelineGraph() {
-        nodes.clear();
-        edges.clear();
+            nodes.clear();
+            edges.clear();
 
-        // Main Cybersecurity Node
-        nodes.add({ id: 1, label: "Cybersecurity", shape: "circle", color: "#ff8c00", size: 60, font: { size: 38 }, x: 0, y: 0 });
+            groups = 
+            {
+                "group1":  [],
+                "group2":  [],
+                "group3":  [],
+                "group4":  [],
+                "group5":  [],
+                "group6":  [],
+                "group7":  [],
+                "group8":  [],
+                "group9":  [],
+                "group10": []
+            };
+            nodeTagsDictionary = {}
+            shownEdges = []
+            tagSize = 50;
+            tagYOffset=70;
+            secondXOffsetMulti = .55;
 
-        let xSpacing = 250; // Space between nodes horizontally
-        let ySpacing = 400; // Vertical spacing for week nodes
-        let topicRadius = 220; // Radius for circular subtopics
+            // Main Cybersecurity Node
+            nodes.add({ id: 1, label: "Cybersecurity", shape: "circle", color: "#6B2C91", size: 60, font: { size: 38, color:"#ffffff"}, hiddenInfo: { pathExtension: "Cybersecurity"} , x: 0, y: 0 });
 
-        let xPos = xSpacing; // Start position for empty nodes
-        let yPos = 0; // Centerline
+            let xSpacing = 250; // Space between nodes horizontally
+            let ySpacing = 400; // Vertical spacing for week nodes
+            let topicRadius = 220; // Radius for circular subtopics
 
-        edges.add({ from: 1, to: 1001 });//Link cybersec and first empty node
+            let xPos = xSpacing; // Start position for empty nodes
+            let yPos = 0; // Centerline
 
-        
-        
-        for (let i = 1; i <= 10; i++) {
-            let emptyNodeId = 1000 + i; // Unique empty node ID
-            let weekNodeId = i + 1;
+            edges.add({ from: 1, to: 1001 });//Link cybersec and first empty node
 
-            // Add an empty node between cybersecurity and week nodes
-            nodes.add({ id: emptyNodeId, label: "", shape: "circle", color: "#d3d3d3", size: 20, x: xPos, y: yPos });
-            edges.add({ from: emptyNodeId - 1, to: emptyNodeId });
+            
+            
+            for (let i = 1; i <= 10; i++) {
+                let emptyNodeId = 1000 + i; // Unique empty node ID
+                let weekNodeId = i + 1;
 
-            // Alternate week node placement (odd: above, even: below)
-            let weekY = (i % 2 === 0) ? yPos + ySpacing : yPos - ySpacing;
-            nodes.add({ id: weekNodeId, label: `Week ${i}`, color: "#6fa3ef", size: 35, font: { size: 25 }, x: xPos, y: weekY });
-            edges.add({ from: emptyNodeId, to: weekNodeId });
+                // Add an empty node between cybersecurity and week nodes
+                nodes.add({ id: emptyNodeId, label: "", shape: "circle", color: "#d3d3d3", size: 20, x: xPos, y: yPos });
+                edges.add({ from: emptyNodeId - 1, to: emptyNodeId });
 
-            // Add topics in a circular layout around the week node
-            let topics = getTopicsForWeek(i);
-            let angleStep = (2 * Math.PI) / topics.length; // Angle between topics
+                // Alternate week node placement (odd: above, even: below)
+                let weekY = (i % 2 === 0) ? yPos + ySpacing : yPos - ySpacing;
+                nodes.add({ id: weekNodeId, label: `Week ${i}`, color: "#D5B8E7", size: 35, font: { size: 25 }, x: xPos, y: weekY, hiddenInfo:{pathExtension: `Week ${i}`} });
+                edges.add({ from: emptyNodeId, to: weekNodeId });
 
-            topics.forEach((topic, index) => {
-                let topicAngle = angleStep * (index-1.5);
-                let topicX = xPos + Math.cos(topicAngle) * topicRadius;
-                let topicY = weekY + Math.sin(topicAngle) * topicRadius;
-                let topicId = weekNodeId * 20 + index;
+                // Add topics in a circular layout around the week node
+                let topics = getTopicsForWeek(i);
+                let angleStep = (2 * Math.PI) / topics.length; // Angle between topics
 
-                nodes.add({ id: topicId, label: topic, color: "#77dd77", size: 25, font: { size: 18 }, x: topicX, y: topicY });
-                edges.add({ from: weekNodeId, to: topicId });
-            });
+                topics.forEach((topic, index) => {
+                    let topicAngle = angleStep * (index-1.5);
+                    let topicX = xPos + Math.cos(topicAngle) * topicRadius;
+                    let topicY = weekY + Math.sin(topicAngle) * topicRadius;
+                    let topicId = weekNodeId * 20 + index;
 
-            // Move to the right for the next set of nodes
-            xPos += xSpacing*1.5;
-    }
-    let week10Part1 = ["Understanding \nMalware", "Malware \nClassification", "Types of \nMalware", "Advanced Persistent \nThreats (APTs)", "Defensive Measures \nAgainst Malware"]
-        let week10Part2 = ["Understanding \nBuffer Overflows", "Program Memory \nLayout", "Stack-Based Buffer \nOverflow Attacks", "Buffer Overflow \nExploitation Techniques", "Defenses Against \nBuffer \nOverflow Attacks"]
-        let week10Part1topicAngleStep = (2 * Math.PI) / (week10Part1.length*2);
-        week10Part1.forEach((week10Part1topic, index) => {
-            let week10Part1topicAngle = (week10Part1topicAngleStep * (index-3));
-            let week10Part1topicX = nodes.get(221).x + Math.cos(week10Part1topicAngle) * 300;
-            let week10Part1topicY = nodes.get(221).y + Math.sin(week10Part1topicAngle) * 300;
-            let week10Part1topicId = 223 + index;
-            nodes.add({ id: week10Part1topicId, label: week10Part1topic, color: "#77dd77", size: 25, font: { size: 22 }, x: week10Part1topicX, y: week10Part1topicY });
-            edges.add({ from: 221, to: week10Part1topicId });
-            });
-        let week10Part2topicAngleStep = (2 * Math.PI) / (week10Part2.length*1.5);
-        week10Part2.forEach((week10Part2topic, index) => {
-            let week10Part2topicAngle = (week10Part2topicAngleStep * (index));
-            let week10Part2topicX = nodes.get(222).x + Math.cos(week10Part2topicAngle) * 300;
-            let week10Part2topicY = nodes.get(222).y + Math.sin(week10Part2topicAngle) * 300;
-            let week10Part2topicId = 228 + index;
-            nodes.add({ id: week10Part2topicId, label: week10Part2topic, color: "#77dd77", size: 25, font: { size: 22 }, x: week10Part2topicX, y: week10Part2topicY });
-            edges.add({ from: 222, to: week10Part2topicId });
-            });
-}
+                    nodes.add({ id: topicId, label: topic, color: "#f9f6cf", size: 25, font: { size: 18 }, x: topicX, y: topicY, hiddenInfo:{showingEdges: false, pathExtension: topic} });
+                    edges.add({ from: weekNodeId, to: topicId });
+                });
+
+                // Move to the right for the next set of nodes
+                xPos += xSpacing*1.5;
+        }
+        let week10Part1 = ["Understanding \nMalware", "Malware \nClassification", "Types of \nMalware", "Advanced Persistent \nThreats (APTs)", "Defensive Measures \nAgainst Malware"]
+            let week10Part2 = ["Understanding \nBuffer Overflows", "Program Memory \nLayout", "Stack-Based Buffer \nOverflow Attacks", "Buffer Overflow \nExploitation Techniques", "Defenses Against \nBuffer \nOverflow Attacks"]
+            let week10Part1topicAngleStep = (2 * Math.PI) / (week10Part1.length*2);
+            week10Part1.forEach((week10Part1topic, index) => {
+                let week10Part1topicAngle = (week10Part1topicAngleStep * (index-3));
+                let week10Part1topicX = nodes.get(221).x + Math.cos(week10Part1topicAngle) * 300;
+                let week10Part1topicY = nodes.get(221).y + Math.sin(week10Part1topicAngle) * 300;
+                let week10Part1topicId = 223 + index;
+                nodes.add({ id: week10Part1topicId, label: week10Part1topic, color: "#f9f6cf", size: 25, font: { size: 22 }, x: week10Part1topicX, y: week10Part1topicY, hiddenInfo:{showingEdges: false, pathExtension: week10Part1topic} });
+                edges.add({ from: 221, to: week10Part1topicId });
+                });
+            let week10Part2topicAngleStep = (2 * Math.PI) / (week10Part2.length*1.5);
+            week10Part2.forEach((week10Part2topic, index) => {
+                let week10Part2topicAngle = (week10Part2topicAngleStep * (index));
+                let week10Part2topicX = nodes.get(222).x + Math.cos(week10Part2topicAngle) * 300;
+                let week10Part2topicY = nodes.get(222).y + Math.sin(week10Part2topicAngle) * 300;
+                let week10Part2topicId = 228 + index;
+                nodes.add({ id: week10Part2topicId, label: week10Part2topic, color: "#f9f6cf", size: 25, font: { size: 22 }, x: week10Part2topicX, y: week10Part2topicY, hiddenInfo:{showingEdges: false, pathExtension: week10Part2topic} });
+                edges.add({ from: 222, to: week10Part2topicId });
+                });
+        }
 
         
         function createCircularGraph() {
             nodes.clear();
             edges.clear();
+
+            groups = 
+            {
+                "group1":  [],
+                "group2":  [],
+                "group3":  [],
+                "group4":  [],
+                "group5":  [],
+                "group6":  [],
+                "group7":  [],
+                "group8":  [],
+                "group9":  [],
+                "group10": []
+            };
+            nodeTagsDictionary = {}
+            shownEdges = []
+            tagSize = 80;
+            tagYOffset=110;
+            secondXOffsetMulti = .8;
             
-            nodes.add({ id: 1, label: "Cybersecurity", shape: "ellipse", color: "#6B2C91", size: 70, font: { size: 90, color:"#ffffff" }, x: 0, y: 0 });
+            nodes.add({ id: 1, label: "Cybersecurity", shape: "ellipse", color: "#6B2C91", size: 70, font: { size: 90, color:"#ffffff"}, hiddenInfo:{ pathExtension: "Cybersecurity"} , x: 0, y: 0 });
             let angleStep = (2 * Math.PI) / 10;
             let radius = 1300;
 
@@ -178,7 +218,7 @@
                 let week10Part1topicX = -1277 + Math.cos(week10Part1topicAngle) * 350;
                 let week10Part1topicY = -1162 + Math.sin(week10Part1topicAngle) * 350;
                 let week10Part1topicId = 223 + index;
-                nodes.add({ id: week10Part1topicId, label: week10Part1topic+week10Part1topicId.toString(), color: "#f9f6cf", size: 25, font: { size: 22 }, x: week10Part1topicX, y: week10Part1topicY });
+                nodes.add({ id: week10Part1topicId, label: week10Part1topic+week10Part1topicId.toString(), color: "#f9f6cf", size: 25, font: { size: 22 }, x: week10Part1topicX, y: week10Part1topicY, hiddenInfo:{showingEdges: false, pathExtension: week10Part1topic+week10Part1topicId.toString()} });
                 edges.add({ from: 221, to: week10Part1topicId });
                 });
             let week10Part2topicAngleStep = (2 * Math.PI) / (week10Part2.length*1.5);
@@ -187,7 +227,7 @@
                 let week10Part2topicX = -1030 + Math.cos(week10Part2topicAngle) * 400;
                 let week10Part2topicY = -1715 + Math.sin(week10Part2topicAngle) * 400;
                 let week10Part2topicId = 228 + index;
-                nodes.add({ id: week10Part2topicId, label: week10Part2topic+week10Part2topicId.toString(), color: "#f9f6cf", size: 25, font: { size: 22 }, x: week10Part2topicX, y: week10Part2topicY });
+                nodes.add({ id: week10Part2topicId, label: week10Part2topic+week10Part2topicId.toString(), color: "#f9f6cf", size: 25, font: { size: 22 }, x: week10Part2topicX, y: week10Part2topicY, hiddenInfo:{showingEdges: false, pathExtension: week10Part2topic+week10Part2topicId.toString()} });
                 edges.add({ from: 222, to: week10Part2topicId });
                 });
 
@@ -204,7 +244,7 @@
                     x = 1.3*(Math.cos(angle) * radius);
                     y = 1.3*(Math.sin(angle) * radius);
                 }
-                nodes.add({ id: weekNodeId, label: `Week ${i}`, color: "#D5B8E7", size: 60, shape: "ellipse", font: { size: 85 , color:"#1C1C1C"}, x: x, y: y });
+                nodes.add({ id: weekNodeId, label: `Week ${i}`, color: "#D5B8E7", size: 60, shape: "ellipse", font: { size: 85 , color:"#1C1C1C"}, x: x, y: y,hiddenInfo:{ pathExtension: `Week ${i}`} });
                 edges.add({ from: 1, to: weekNodeId });
                 
                 let topics = getTopicsForWeek(i);
@@ -215,7 +255,7 @@
                     let topicX = Math.round(x + Math.cos(topicAngle) * topicRadius);
                     let topicY = Math.round(y + Math.sin(topicAngle) * topicRadius); 
                     let topicId = weekNodeId * 20 + index;
-                    nodes.add({ id: topicId, label: topic, color: "#f9f6cf", size: 25, font: { size: 30, color:"#1C1C1C" }, x: topicX, y: topicY });
+                    nodes.add({ id: topicId, label: topic, color: "#f9f6cf", size: 25, font: { size: 30, color:"#1C1C1C" }, x: topicX, y: topicY, hiddenInfo:{showingEdges: false, pathExtension: topic} });
                     edges.add({ from: weekNodeId, to: topicId });
                 });
             }
@@ -785,7 +825,6 @@
         
 
         let nodeEdgeMap = {};
-        let hiddenNodeEdges = {};
 
 
         // Ensure all edges have unique IDs and build a map of node -> connected edges
@@ -804,7 +843,6 @@
             });
         }
         buildNodeEdgeMap();
-        hiddenNodeEdges = {...nodeEdgeMap};
 
 
         function updateGraph(view) {
@@ -827,7 +865,6 @@
 
 
 
-        createCircularGraph();
 
 
 
@@ -860,14 +897,25 @@
             "group10": []
         };
         let nodeTagsDictionary = {}
-        const tagYOffset=110;
-        const tagSize = 80;
+        let shownEdges = []
+        let tagSize = 80;
+        let tagYOffset=70;
         let tagStartingIdBase = 100000;
+        let secondXOffsetMulti = 1;
+        createCircularGraph();
 
         function moveTagAboveParents(params)
         {
+            if (params.nodes.length !== 1) return; //Check if click is on node, if not, exits
             let draggedNodeId = params.nodes[0];
             const pos = network.getPositions([draggedNodeId])[draggedNodeId];
+            let nodeData = nodes.get(draggedNodeId);
+            nodes.update(
+            {
+                ...nodeData,
+                x: pos.x,
+                y: pos.y
+            });
             
             if (nodeTagsDictionary[draggedNodeId]) //If node has tags
             { 
@@ -905,7 +953,7 @@
 
             nodes.add({ 
                 id: idForTag,
-                x: pos.x + tagXOffset,
+                x: pos.x + (tagXOffset*secondXOffsetMulti),
                 y: pos.y - tagYOffset, 
                 shape: "icon",
                 icon: 
@@ -917,7 +965,7 @@
                 },
                 hiddenInfo: 
                 {
-                    xOffset: tagXOffset
+                    xOffset: tagXOffset * secondXOffsetMulti
                 }
             });
             
@@ -930,29 +978,43 @@
             nodes.remove(nodeTagsDictionary[nodeId][groupNum])
             delete nodeTagsDictionary[nodeId][groupNum];
         }
-
-
-        //TAGGING
+        let textNodeIds = 1000;
+        
+        //EDGE SHOWING/HIDING AND TAGGING
         network.on("click", function (params) {
-            if (params.nodes.length !== 1) return; //Check if click is on node, if not, exits
+            if (params.nodes.length !== 1)  //Check if click is on node, if not, exits
+            {
+                Swal.fire({
+                    title: 'Enter text',
+                    input: 'text',
+                    inputPlaceholder: 'Type here...',
+                    showCancelButton: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const inputText = result.value;
+                        // You can add the new node to vis.js here
+                        textNodeIds += 1;
+                        const canvasCoords = params.pointer.canvas;
+                        nodes.add(
+                        {
+                            id: textNodeIds,
+                            shape: "box",
+                            label: inputText,
+                            font:{size:30},
+                            x: canvasCoords.x,
+                            y: canvasCoords.y,
+                            hiddenInfo:{pathExtension:""}
+                        });
+                    }
+                });
+                
+                return;
+            }
 
             const nodeId = params.nodes[0];
             const connectedEdges = nodeEdgeMap[nodeId];
-            if (!connectedEdges) {
-                return
-            }
-
-            if (hiddenNodeEdges[nodeId]) {
-                // Restore previously hidden edges
-                edges.add(hiddenNodeEdges[nodeId]);
-                delete hiddenNodeEdges[nodeId];
-            } else {
-                var connectionIds = network.getConnectedNodes(nodeId);
-                // Hide edges by ID and save them for later
-                hiddenNodeEdges[nodeId] = connectedEdges;
-                const edgeIds = connectedEdges.map(e => e.id);
-                edges.remove(edgeIds);
-            }
+            let nodeData = nodes.get(nodeId);
+            filePath = "cybersec/"+nodeData.hiddenInfo["pathExtension"]+".pdf";
 
             const nodeLowerBound = 40; //Ids for leaf nodes, only highlight these, not week nodes
             const nodeUpperBound = 240;
@@ -972,28 +1034,9 @@
                 }
             }
 
-            if (clickedOnParentNode) //Run code for removing group and tags
-            {
-                let kidNodes = connectionIds; //Get connected nodes
-                kidNodes.forEach(function(nodeId) //Add connected nodes to group and give them the group tag
-                { 
-                    if (nodeId>=40 && nodeId<=240) //Only if leaf node
-                    {
-                        removeTag(nodeId,removalGroupNumber); 
-                    }
-                });
-                groups["group"+removalGroupNumber.toString()] = []
-                //nodes.add({ id: topicId, label: topic, color: "#f9f6cf", size: 25, font: { size: 30, color:"#1C1C1C" }, x: topicX, y: topicY });
-                nodes.update({    //Change parent node border color
-                        id: clickedNodeId,
-                        color: {color:"#f9f6cf", border: "#d9d6ae",highlight: {border: "#d9d6ae"}},
-                        borderWidth: 1.3, 
-                        size: 25
-                    });
-            }
-            else //Run code for making group and tags
-            {
 
+            if (!clickedOnParentNode)
+            {
                 let groupCapacityFull = true;           //Check if there are already 10 groups            
                 for (let groupNum = 1;groupNum<=10;groupNum++){
                     if (groups["group"+groupNum.toString()].length===0) {
@@ -1007,12 +1050,72 @@
 
                 if (groupCapacityFull) { //Pop up message if 10 groups exist
                     Swal.fire({
-                      icon: 'error',
-                      title: 'Maximum 10 groups!',
-                      text: 'A maximum of 10 groups allowed at a time, please unselect one of the groups before making another one',
+                        icon: 'error',
+                        title: 'Maximum 10 groups!',
+                        text: 'A maximum of 10 groups allowed at a time, please unselect one of the groups before making another one',
                     });
                     return;
                 }
+            }
+
+            if (!connectedEdges) {
+                return
+            }
+            if (!nodeData.hiddenInfo["shown"]) {
+                nodes.update({
+                    ...nodeData,
+                    hiddenInfo:{...nodeData.hiddenInfo,shown: true}
+                });
+                for (const hiddenEdge of nodeEdgeMap[nodeId])
+                {
+                    if (!edges.get(hiddenEdge.id)) 
+                        {
+                        edges.add(hiddenEdge);
+                        shownEdges.push(hiddenEdge);
+
+                }       }         
+                
+            } else {
+                nodes.update({
+                    ...nodeData,
+                    hiddenInfo:{...nodeData.hiddenInfo,shown: false}
+                });
+                var connectionIds = network.getConnectedNodes(nodeId);
+                // Hide edges by ID and save them for later
+                let edgesToRemove = []
+                for (edgeToRemove of nodeEdgeMap[nodeId])
+                {
+                    if (!(nodes.get(edgeToRemove["from"]).hiddenInfo["shown"]) && !(nodes.get(edgeToRemove["to"]).hiddenInfo["shown"])) 
+                    {
+                        edgesToRemove.push(edgeToRemove);
+                        shownEdges.splice(shownEdges.indexOf(edgeToRemove),1);
+                    }
+                }
+                edges.remove(edgesToRemove);
+            }
+
+            
+
+            if (clickedOnParentNode) //Run code for removing group and tags
+            {
+                let kidNodes = connectionIds; //Get connected nodes
+                kidNodes.forEach(function(nodeId) //Add connected nodes to group and give them the group tag
+                { 
+                    if (nodeId>=40 && nodeId<=240) //Only if leaf node
+                    {
+                        removeTag(nodeId,removalGroupNumber); 
+                    }
+                });
+                groups["group"+removalGroupNumber.toString()] = []
+                nodes.update({    //Change parent node border color
+                        id: clickedNodeId,
+                        color: {color:"#f9f6cf", border: "#d9d6ae",highlight: {border: "#d9d6ae"}},
+                        borderWidth: 1.3, 
+                        size: 25
+                    });
+            }
+            else //Run code for making group and tags
+            {
 
                 //Add father node to group list, then all kids
                 let groupPreset = groupPresets[groupNumberStr] // Choose style of tags
@@ -1027,7 +1130,7 @@
                     }
                 });
 
-                var nodeData = nodes.get(clickedNodeId)
+                let nodeData = nodes.get(clickedNodeId)
                 nodes.update({ //Change parent node border color
                         id: clickedNodeId,
                         color: (nodeData.color && typeof nodeData.color === "object")
@@ -1048,17 +1151,39 @@
         toggleExtraButton.addEventListener("click", function () {
             toggleExtraButton.classList.toggle('active');
             extraEdgesVisible = !extraEdgesVisible;
+            const edgesToManipulate = [...extraEdges];
+            for (let edge of shownEdges)
+            {
+                edgesToManipulate.splice(edgesToManipulate.indexOf(edge),1);
+            }
             if (extraEdgesVisible) {
-              edges.add(extraEdges);
-            } else {
-              // Remove the extra edges by ID
-              const extraEdgeIds = extraEdges.map(edge => edge.id);
-              edges.remove(extraEdgeIds);
+                edges.add(edgesToManipulate);
+            } else 
+            {
+                // Remove the extra edges by ID
+                const extraEdgeIds = edgesToManipulate.map(edge => edge.id);
+                edges.remove(extraEdgeIds);
             }
           });
         circularButton.addEventListener("click", () => updateGraph("circular"));
         timelineButton.addEventListener("click", () => updateGraph("timeline"));
+
     });
+    function openPDF()  //MISSING WARNING EDGE CASES
+    {
+        if (filePath=="cybersec/") 
+        {
+            Swal.fire({
+                icon: 'error',
+                title: 'No node selected!',
+                text: 'Please select a node to open its pdf form.',
+            });
+        }
+        else
+        {
+            window.open(filePath, '_blank');
+        }
+    }
     </script>
 </body>
 </html>
