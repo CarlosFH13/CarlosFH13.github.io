@@ -31,9 +31,9 @@
       <label>Label <input name="main-node-label" required></label>
     </div>
 
-    <h2>Weeks</h2>
+    <h2>Subtopics / Weeks</h2>
     <div id="weeksContainer"></div>
-    <button type="button" onclick="addWeekEntry()">Add Week</button>
+    <button type="button" onclick="addWeekEntry()">Add Subtopic / Week</button>
 
     <h2>Edges</h2>
     <div id="edgesContainer"></div>
@@ -47,7 +47,7 @@
 
 
         <section id="mindmap-section">
-            <h2 id="mindmapTitle">Cybersecurity<br/>Mind Map</h2>
+            <h2 id="mindmapTitle">Mind Map</h2>
             <div class="button-group">
                 <button id="openPDF" onclick="openPDF()" class="text-toggle">Open PDF</button>
                 </button>
@@ -69,7 +69,7 @@
       const weekId = 'week-' + Math.random().toString(36).substr(2, 9);
       weekDiv.innerHTML = `
         <button type="button" class="remove-btn" onclick="this.parentElement.remove()">X</button>
-        <label>Week Label <input name="week-label" required></label>
+        <label>Subtopic / Week Label <input name="week-label" required></label>
         <div class="week-nodes" id="${weekId}"></div>
         <button type="button" onclick="addLeafNode('${weekId}')">Add Leaf Node</button>
       `;
@@ -94,9 +94,9 @@
       div.classList.add('entry-container');
       div.innerHTML = `
         <button type="button" class="remove-btn" onclick="this.parentElement.remove()">X</button>
-        <label>Week <input name="edge-from-week" placeholder="Week name..." required></label>
+        <label>Subtopic <input name="edge-from-week" placeholder="Week name..." required></label>
         <label>Leaf <input name="edge-from-leaf" placeholder="Leaf name..." required></label>
-        <label><b>TO</b> Week <input name="edge-to-week" placeholder="Week name..." required></label>
+        <label><b>TO</b> Subtopic <input name="edge-to-week" placeholder="Week name..." required></label>
         <label>Leaf <input name="edge-to-leaf" placeholder="Leaf name..." required></label>
         <label>Label <input name="edge-label" placeholder="Edge label..."></label>
       `;
