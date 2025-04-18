@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Cybersecurity mindmap</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type='text/javascript' src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul class="nav-list">
+                <li><a href="./index3.html">Cybersecurity</a></li>
+                <li><a href="#">Mindmap generator</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <h1>Mindmap Creator</h1>
+  <form id="mindmapForm">
+    <div>
+      <label>Mindmap Title <input type="text" id="title" required></label>
+    </div>
+
+    <h2>Main Title Node</h2>
+    <div class="entry-container">
+      <label>Label <input name="main-node-label" required></label>
+    </div>
+
+    <h2>Weeks</h2>
+    <div id="weeksContainer"></div>
+    <button type="button" onclick="addWeekEntry()">Add Week</button>
+
+    <h2>Edges</h2>
+    <div id="edgesContainer"></div>
+    <button type="button" onclick="addEdgeEntry()">Add Edge</button>
+
+    <div>
+      <button type="submit">Generate Mindmap</button>
+    </div>
+  </form>
+
+
+
+        <section id="mindmap-section">
+            <h2 id="mindmapTitle">Cybersecurity<br/>Mind Map</h2>
+            <div class="button-group">
+                <button id="openPDF" onclick="openPDF()" class="text-toggle">Open PDF</button>
+                </button>
+                <div class="inbuttons">
+                    <button class="toggle-button active fh" id="circularView">Circular View</button>
+                    <button class="toggle-button fh" id="timelineView">Timeline View</button>
+                </div>
+
+                <button id="toggleExtraEdges" class="text-toggle">Extra Connections</button>
+            </div>
+            <div id="mindmap" style="height: 600px;"></div>
+        </section>
+
+        <script>
+        function addWeekEntry() {
+      const container = document.getElementById('weeksContainer');
+      const weekDiv = document.createElement('div');
+      weekDiv.classList.add('entry-container');
+      const weekId = 'week-' + Math.random().toString(36).substr(2, 9);
+      weekDiv.innerHTML = `
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove()">X</button>
+        <label>Week Label <input name="week-label" required></label>
+        <div class="week-nodes" id="${weekId}"></div>
+        <button type="button" onclick="addLeafNode('${weekId}')">Add Leaf Node</button>
+      `;
+      container.appendChild(weekDiv);
+    }
+
+    function addLeafNode(containerId) {
+      const container = document.getElementById(containerId);
+      const div = document.createElement('div');
+      div.classList.add('entry-container');
+      div.innerHTML = `
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove()">X</button>
+        <label>Label <input name="leaf-label" required></label>
+        <label>PDF <input name="leaf-pdf" type="file" accept="application/pdf"></label>
+      `;
+      container.appendChild(div);
+    }
+
+    function addEdgeEntry() {
+      const container = document.getElementById('edgesContainer');
+      const div = document.createElement('div');
+      div.classList.add('entry-container');
+      div.innerHTML = `
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove()">X</button>
+        <label>Week <input name="edge-from-week" placeholder="Week name..." required></label>
+        <label>Leaf <input name="edge-from-leaf" placeholder="Leaf name..." required></label>
+        <label><b>TO</b> Week <input name="edge-to-week" placeholder="Week name..." required></label>
+        <label>Leaf <input name="edge-to-leaf" placeholder="Leaf name..." required></label>
+        <label>Label <input name="edge-label" placeholder="Edge label..."></label>
+      `;
+      container.appendChild(div);
+    }
+    var filePath = "";
+
+    document.getElementById('mindmapForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+
+      const initialExtraEdges = [];
+      const subtopicLabels = [];
+      var extraEdges = [];
+
+      const mainLabel = document.querySelector('[name="main-node-label"]').value;
+      let mainNode = { label: `${mainLabel}` }
+      document.getElementById("mindmapTitle").innerHTML = document.getElementById("title").value;
+
+      const weekIds = document.getElementsByName('week-id');
+      const weekLabels = document.getElementsByName('week-label');
+      let weekNumAndLabels = {};
+      
+
+      for (let i = 0; i < weekLabels.length; i++) {
+        const weekLabel = weekLabels[i].value;
+        weekNumAndLabels[weekLabel] = [];
+        subtopicLabels.push(weekLabel);
+
+        const leafLabels = weekLabels[i].parentElement.parentElement.querySelectorAll('[name="leaf-label"]');
+        const leafPdfs = weekLabels[i].parentElement.parentElement.querySelectorAll('[name="leaf-pdf"]');
+
+
+        for (let j = 0; j < leafLabels.length; j++) {
+          const label = leafLabels[j].value;
+          const pdfFile = leafPdfs[j].files[0];
+          const pdfLink = pdfFile ? URL.createObjectURL(pdfFile) : "";
+    
+          weekNumAndLabels[weekLabel].push({label: label, pdf: pdfLink});
+        }
+      }
+
+      const edgeFromsWeek = document.getElementsByName('edge-from-week');
+      const edgeFromsLeaf = document.getElementsByName('edge-from-leaf');
+      const edgeTosWeek = document.getElementsByName('edge-to-week');
+      const edgeTosLeaf = document.getElementsByName('edge-to-leaf');
+      const edgeLabels = document.getElementsByName('edge-label');
+
+      for (let i = 0; i < edgeFromsWeek.length; i++) {
+
+        if ( weekNumAndLabels[edgeFromsWeek[i].value] && weekNumAndLabels[edgeTosWeek[i].value]) 
+        {
+            let node1Exists = false;
+            for (let j = 0;j<weekNumAndLabels[edgeFromsWeek[i].value].length;j++)
+            {
+
+                if (weekNumAndLabels[edgeFromsWeek[i].value][j]["label"]===edgeFromsLeaf[i].value) node1Exists = true;
+            }
+            let node2exists = false;
+            for (let x = 0;x<weekNumAndLabels[edgeTosWeek[i].value].length;x++)
+            {
+                if (weekNumAndLabels[edgeTosWeek[i].value][x]["label"]===edgeTosLeaf[i].value) node2Exists = true;
+            }
+            if (node1Exists && node2Exists) 
+            {
+                initialExtraEdges.push([edgeFromsWeek[i].value,edgeFromsLeaf[i].value,edgeTosWeek[i].value,edgeTosLeaf[i].value,edgeLabels[i].value]);
+            }
+        }
+
+        
+      }
+
+      const numWeeks = Object.keys(weekNumAndLabels).length;
+
+        //__________________________________HERE was });________________________________________
+        //______________________________________________________________________________________    
+
+            
+            var container = document.getElementById("mindmap");
+            var circularButton = document.getElementById("circularView");
+            var timelineButton = document.getElementById("timelineView");
+            var toggleExtraButton = document.getElementById("toggleExtraEdges");
+
+            var nodes = new vis.DataSet();
+            var edges = new vis.DataSet();
+                  
+            // Whether extra edges are currently visible
+            let extraEdgesVisible = false;
+
+            function createTimelineGraph() {
+                nodes.clear();
+                edges.clear();
+
+                groups = 
+                {
+                    "group1":  [],
+                    "group2":  [],
+                    "group3":  [],
+                    "group4":  [],
+                    "group5":  [],
+                    "group6":  [],
+                    "group7":  [],
+                    "group8":  [],
+                    "group9":  [],
+                    "group10": []
+                };
+                nodeTagsDictionary = {}
+                shownEdges = []
+                tagSize = 50;
+                tagYOffset=70;
+                secondXOffsetMulti = .55;
+
+                // Main  Node
+                nodes.add({ ...mainNode,id:1, shape: "ellipse", color: "#6B2C91", size: 40, font: { size: 40, color:"#ffffff"}, hiddenInfo:{ pathExtension: ""} , x: 0, y: 0 });
+
+                let xSpacing = 250; // Space between nodes horizontally
+                let ySpacing = 400; // Vertical spacing for week nodes
+                let topicRadius = 220; // Radius for circular subtopics
+
+                let xPos = xSpacing; // Start position for empty nodes
+                let yPos = 0; // Centerline
+
+                edges.add({ from: 1, to: 1000 });//Link cybersec and first empty node
+
+                
+                
+                for (let i = 0; i < numWeeks; i++) {
+                    let emptyNodeId = 1000 + i; // Unique empty node ID
+                    let weekNodeId = i + 2;
+                    let weekLabel = subtopicLabels[i];
+
+                    // Add an empty node between cybersecurity and week nodes
+                    nodes.add({ id: emptyNodeId, label: "", shape: "circle", color: "#d3d3d3", size: 20, x: xPos, y: yPos });
+                    edges.add({ from: emptyNodeId - 1, to: emptyNodeId });
+
+                    // Alternate week node placement (odd: above, even: below)
+                    let weekY = (i % 2 === 0) ? yPos + ySpacing : yPos - ySpacing;
+                    nodes.add({ id: weekNodeId, label: weekLabel, color: "#D5B8E7", size: 35, font: { size: 25 }, x: xPos, y: weekY, hiddenInfo:{pathExtension: `Week ${i}`} });
+                    edges.add({ from: emptyNodeId, to: weekNodeId });
+
+                    // Add topics in a circular layout around the week node
+                    console.log("weekNumAndLabels timeline: ",weekNumAndLabels);
+                    let topics = weekNumAndLabels[weekLabel];
+                    let angleStep = (2 * Math.PI) / topics.length; // Angle between topics
+
+                    topics.forEach((topic, index) => {
+                        let topicAngle = angleStep * (index-1.5);
+                        let topicX = xPos + Math.cos(topicAngle) * topicRadius;
+                        let topicY = weekY + Math.sin(topicAngle) * topicRadius;
+                        let topicId = weekNodeId * 20 + index;
+
+                        nodes.add({ id: topicId, label: topic["label"], color: "#f9f6cf", size: 25, font: { size: 18 }, x: topicX, y: topicY, hiddenInfo:{showingEdges: false, pathExtension: topic["pdf"]} });
+                        edges.add({ from: weekNodeId, to: topicId });
+                    });
+
+                    // Move to the right for the next set of nodes
+                    xPos += xSpacing*1.5;
+                }
+            }
+
+            
+            function createCircularGraph() {
+                nodes.clear();
+                edges.clear();
+
+                groups = 
+                {
+                    "group1":  [],
+                    "group2":  [],
+                    "group3":  [],
+                    "group4":  [],
+                    "group5":  [],
+                    "group6":  [],
+                    "group7":  [],
+                    "group8":  [],
+                    "group9":  [],
+                    "group10": []
+                };
+                nodeTagsDictionary = {}
+                shownEdges = []
+                tagSize = 80;
+                tagYOffset=110;
+                secondXOffsetMulti = .8;
+                
+                nodes.add({ ...mainNode,id:1, shape: "ellipse", color: "#6B2C91", size: 70, font: { size: 90, color:"#ffffff"}, hiddenInfo:{ pathExtension: ""} , x: 0, y: 0 });
+                let angleStep = (2 * Math.PI) / numWeeks;
+                let radius = 1300 * (10/10);
+
+                for (let i = 0; i < numWeeks; i++) {
+                    let angle = (angleStep * (i - 1))-(angleStep*2.5);
+                    let weekNodeId = i + 2;
+                    let weekLabel = subtopicLabels[i];
+                    let x;
+                    let y;
+                    if (i%2==1) {
+                        x = 0.7*(Math.cos(angle) * radius);
+                        y = 0.7*(Math.sin(angle) * radius);
+                    }
+                    else{
+                        x = 1.3*(Math.cos(angle) * radius);
+                        y = 1.3*(Math.sin(angle) * radius);
+                    }
+                    nodes.add({ id: weekNodeId, label: weekLabel, color: "#D5B8E7", size: 60, shape: "ellipse", font: { size: 85 , color:"#1C1C1C"}, x: x, y: y,hiddenInfo:{ pathExtension: `Week ${i}`} });
+                    edges.add({ from: 1, to: weekNodeId });
+                    console.log("weekNumAndLabels circ: ",weekNumAndLabels);
+                    let topics = weekNumAndLabels[weekLabel];
+                    let topicAngleStep = (2 * Math.PI) / topics.length;
+                    let topicRadius = 350;
+                    topics.forEach((topic, index) => {
+                        let topicAngle = (topicAngleStep * index)-(topicAngleStep*2.8);
+                        let topicX = Math.round(x + Math.cos(topicAngle) * topicRadius);
+                        let topicY = Math.round(y + Math.sin(topicAngle) * topicRadius); 
+                        let topicId = weekNodeId * 20 + index;
+                        nodes.add({ id: topicId, label: topic["label"], color: "#f9f6cf", size: 25, font: { size: 30, color:"#1C1C1C" }, x: topicX, y: topicY, hiddenInfo:{showingEdges: false, pathExtension: topic["pdf"]} });
+                        edges.add({ from: weekNodeId, to: topicId });
+                    });
+                }                
+            }
+            
+
+            let nodeEdgeMap = {};
+
+
+            
+
+
+            function updateGraph(view) {
+                circularButton.classList.remove("active");
+                timelineButton.classList.remove("active");
+                if (view === "circular") {
+                    createCircularGraph();
+                    circularButton.classList.add("active");
+                } else {
+                    createTimelineGraph();
+                    timelineButton.classList.add("active");
+                }
+                network.setData({ nodes: nodes, edges: edges });
+
+                if (extraEdgesVisible) {
+                    edges.add(extraEdges);
+                }
+                
+            }
+
+
+
+
+
+
+            
+            //Handle all on click logic
+
+            const groupPresets = {
+                "group1":  { "color": "#FF4136", "shape": "\uf111" }, // Red circle
+                "group2":  { "color": "#0074D9", "shape": "\uf0c8" }, // Blue square
+                "group3":  { "color": "#2ECC40", "shape": "\uf069" }, // Green asterisk
+                "group4":  { "color": "#FFDC00", "shape": "\uf005" }, // Yellow star
+                "group5":  { "color": "#B10DC9", "shape": "\uf140" }, // Purple bullseye
+                "group6":  { "color": "#FF851B", "shape": "\uf04d" }, // Orange stop block
+                "group7":  { "color": "#AAAAAA", "shape": "\uf2b4" }, // Gray flag
+                "group8":  { "color": "#F012BE", "shape": "\uf02b" }, // Pink tag
+                "group9":  { "color": "#39CCCC", "shape": "\uf0d8" }, // Teal triangle up
+                "group10": { "color": "#85144b", "shape": "\uf0e9" }  // Maroon Umbrella
+            };
+
+            let groups = {
+                "group1":  [],
+                "group2":  [],
+                "group3":  [],
+                "group4":  [],
+                "group5":  [],
+                "group6":  [],
+                "group7":  [],
+                "group8":  [],
+                "group9":  [],
+                "group10": []
+            };
+            let nodeTagsDictionary = {}
+            let shownEdges = []
+            let tagSize = 80;
+            let tagYOffset=70;
+            let tagStartingIdBase = 100000;
+            let secondXOffsetMulti = 1;
+            createCircularGraph();
+            var network = new vis.Network(container, { nodes: nodes, edges: edges }, { physics: false });
+
+            for (const connection of initialExtraEdges)
+            {
+
+                let filtered = nodes.get({
+                    filter: function(item) {
+                        return (item.label).toString()===connection[1];
+                    }
+                });
+
+                let correctWeek = connection[0];
+                let correctNode = false;
+                for (const node of filtered)
+                {
+                    let connectedNodes = network.getConnectedNodes(node.id);
+                    for (const connectedNode of connectedNodes)
+                    {
+                        if (nodes.get(connectedNode).label === correctWeek) 
+                        {
+                            correctNode = node;
+                            break;
+                        }
+                    }
+                    if (correctNode) break;    
+                }
+                let nodeFromId = correctNode.id;
+
+                filtered = nodes.get({
+                    filter: function(item) {
+                        return item.label===connection[3];
+                    }
+                });
+
+                correctWeek = connection[2];
+                correctNode = false;
+                for (const node of filtered)
+                {
+                    let connectedNodes = network.getConnectedNodes(node.id);
+                    for (const connectedNode of connectedNodes)
+                    {
+                        if (nodes.get(connectedNode).label === correctWeek) 
+                        {
+                            correctNode = node;
+                            break;
+                        }
+                    }
+                    if (correctNode) break;    
+                }
+                let nodeToId = correctNode.id;
+
+                extraEdges.push(
+                    {
+                        from: nodeFromId,
+                        to:nodeToId,
+                        label: connection[4],
+                        color: "#B0B0B0"
+                    });
+
+                     
+                
+            }
+
+
+            
+
+            // Ensure all edges have unique IDs and build a map of node -> connected edges
+            function buildNodeEdgeMap() {
+                let idCounter = 100000; // Some large number to not clash with other IDs
+                extraEdges.forEach((edge, index) => {
+                    // Assign a unique ID if missing
+                    if (!edge.id) {
+                        edge.id = `auto-${idCounter++}`;
+                    }
+
+                    [edge.from, edge.to].forEach(nodeId => {
+                        if (!nodeEdgeMap[nodeId]) nodeEdgeMap[nodeId] = [];
+                        nodeEdgeMap[nodeId].push(edge);
+                    });
+                });
+            }
+            buildNodeEdgeMap();
+
+            
+
+
+            function moveTagAboveParents(params)
+            {
+                if (params.nodes.length !== 1) return; //Check if click is on node, if not, exits
+                let draggedNodeId = params.nodes[0];
+                const pos = network.getPositions([draggedNodeId])[draggedNodeId];
+                let nodeData = nodes.get(draggedNodeId);
+                nodes.update(
+                {
+                    ...nodeData,
+                    x: pos.x,
+                    y: pos.y
+                });
+                
+                if (nodeTagsDictionary[draggedNodeId]) //If node has tags
+                { 
+                    for (const key in nodeTagsDictionary[draggedNodeId]) {
+                      let tagId = nodeTagsDictionary[draggedNodeId][key];
+                      let nodeData = nodes.get(tagId);
+
+                      nodes.update(
+                      {
+                        id: tagId,
+                        x: pos.x + nodeData.hiddenInfo["xOffset"],
+                        y: pos.y - tagYOffset
+                      });
+                    }
+                }
+
+            }
+            network.on("dragEnd", moveTagAboveParents);
+
+            function giveTag(nodeId, groupPreset, groupNum){
+                const pos = network.getPositions([nodeId])[nodeId];
+                let idForTag = tagStartingIdBase;
+                tagStartingIdBase += 1;
+                
+                if (!nodeTagsDictionary[nodeId]) { //If node does not have a list(first tag)
+                    nodeTagsDictionary[nodeId] = {};
+                }
+
+                let tagNum = Object.keys(nodeTagsDictionary[nodeId]).length;
+
+                const tagXOffsetMultiplier = 50; //Calculate tag offset so tags are not on top of each other
+                let tagXOffsetNegative = (tagNum%2 == 0) ? 1:-1 ;
+                let tagXOffset = tagXOffsetMultiplier*tagNum*tagXOffsetNegative;
+                if (tagNum%2==1) tagXOffset -= tagXOffsetMultiplier;
+
+                nodes.add({ 
+                    id: idForTag,
+                    x: pos.x + (tagXOffset*secondXOffsetMulti),
+                    y: pos.y - tagYOffset, 
+                    shape: "icon",
+                    icon: 
+                    {
+                        face: "FontAwesome",
+                        color: groupPreset["color"],
+                        size: tagSize,
+                        code: groupPreset["shape"]
+                    },
+                    hiddenInfo: 
+                    {
+                        xOffset: tagXOffset * secondXOffsetMulti
+                    }
+                });
+                
+
+                nodeTagsDictionary[nodeId][groupNum] = idForTag;//Add tag nodeId
+
+            }
+
+            function removeTag(nodeId, groupNum){
+                nodes.remove(nodeTagsDictionary[nodeId][groupNum])
+                delete nodeTagsDictionary[nodeId][groupNum];
+            }
+            let textNodeIds = 1000;
+            
+            //EDGE SHOWING/HIDING AND TAGGING
+            network.on("click", function (params) {
+                if (params.nodes.length !== 1)  //Check if click is on node, if not, exits
+                {
+                    Swal.fire({
+                        title: 'Enter text',
+                        input: 'text',
+                        inputPlaceholder: 'Type here...',
+                        showCancelButton: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const inputText = result.value;
+                            // You can add the new node to vis.js here
+                            textNodeIds += 1;
+                            const canvasCoords = params.pointer.canvas;
+                            nodes.add(
+                            {
+                                id: textNodeIds,
+                                shape: "box",
+                                label: inputText,
+                                font:{size:30},
+                                x: canvasCoords.x,
+                                y: canvasCoords.y,
+                                hiddenInfo:{pathExtension:""}
+                            });
+                        }
+                    });
+                    
+                    return;
+                }
+
+                const nodeId = params.nodes[0];
+                const connectedEdges = nodeEdgeMap[nodeId];
+                let nodeData = nodes.get(nodeId);
+                filePath = nodeData.hiddenInfo["pathExtension"];
+
+
+                const nodeLowerBound = 40; //Ids for leaf nodes, only highlight these, not week nodes
+                const nodeUpperBound = 240;
+                const clickedNodeId = params.nodes[0];
+
+                if (clickedNodeId<40 || clickedNodeId>240) return; //Check if clicked node is leaf
+
+                let clickedOnParentNode = false;
+                let removalGroupNumber = 0;
+
+
+                for (let groupNum = 1;groupNum<=10;groupNum++){
+                    if (groups["group"+groupNum.toString()][0]===clickedNodeId) {
+                        clickedOnParentNode = true;
+                        removalGroupNumber = groupNum;
+                        break;
+                    }
+                }
+
+
+                if (!clickedOnParentNode)
+                {
+                    let groupCapacityFull = true;           //Check if there are already 10 groups            
+                    for (let groupNum = 1;groupNum<=10;groupNum++){
+                        if (groups["group"+groupNum.toString()].length===0) {
+                            groupCapacityFull = false;
+                            emptyGroupNumber = groupNum;
+                            groupNumberStr = "group"+emptyGroupNumber.toString();
+                            break;
+                        }
+                    }
+
+
+                    if (groupCapacityFull) { //Pop up message if 10 groups exist
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Maximum 10 groups!',
+                            text: 'A maximum of 10 groups allowed at a time, please unselect one of the groups before making another one',
+                        });
+                        return;
+                    }
+                }
+
+                if (!connectedEdges) {
+                    return
+                }
+                if (!nodeData.hiddenInfo["shown"]) {
+                    nodes.update({
+                        ...nodeData,
+                        hiddenInfo:{...nodeData.hiddenInfo,shown: true}
+                    });
+                    for (const hiddenEdge of nodeEdgeMap[nodeId])
+                    {
+                        if (!edges.get(hiddenEdge.id)) 
+                            {
+                            edges.add(hiddenEdge);
+                            shownEdges.push(hiddenEdge);
+
+                    }       }         
+                    
+                } else {
+                    nodes.update({
+                        ...nodeData,
+                        hiddenInfo:{...nodeData.hiddenInfo,shown: false}
+                    });
+                    var connectionIds = network.getConnectedNodes(nodeId);
+                    // Hide edges by ID and save them for later
+                    let edgesToRemove = []
+                    for (edgeToRemove of nodeEdgeMap[nodeId])
+                    {
+                        if (!(nodes.get(edgeToRemove["from"]).hiddenInfo["shown"]) && !(nodes.get(edgeToRemove["to"]).hiddenInfo["shown"])) 
+                        {
+                            edgesToRemove.push(edgeToRemove);
+                            shownEdges.splice(shownEdges.indexOf(edgeToRemove),1);
+                        }
+                    }
+                    edges.remove(edgesToRemove);
+                }
+
+                
+
+                if (clickedOnParentNode) //Run code for removing group and tags
+                {
+                    let kidNodes = connectionIds; //Get connected nodes
+                    kidNodes.forEach(function(nodeId) //Add connected nodes to group and give them the group tag
+                    { 
+                        if (nodeId>=40 && nodeId<=240) //Only if leaf node
+                        {
+                            removeTag(nodeId,removalGroupNumber); 
+                        }
+                    });
+                    groups["group"+removalGroupNumber.toString()] = []
+                    nodes.update({    //Change parent node border color
+                            id: clickedNodeId,
+                            color: {color:"#f9f6cf", border: "#d9d6ae",highlight: {border: "#d9d6ae"}},
+                            borderWidth: 1.3, 
+                            size: 25
+                        });
+                }
+                else //Run code for making group and tags
+                {
+
+                    //Add father node to group list, then all kids
+                    let groupPreset = groupPresets[groupNumberStr] // Choose style of tags
+                    groups[groupNumberStr].push(clickedNodeId) // Add node to group
+                    let kidNodes = network.getConnectedNodes(clickedNodeId); //Get connected nodes
+
+                    kidNodes.forEach(function(nodeId) { //Add connected nodes to group and give them the group tag
+                        if (nodeId>=40 || nodeId>=240)  //Only if leaf node
+                        {
+                            groups[groupNumberStr].push(nodeId)
+                            giveTag(nodeId, groupPreset, emptyGroupNumber);
+                        }
+                    });
+
+                    let nodeData = nodes.get(clickedNodeId)
+                    nodes.update({ //Change parent node border color
+                            id: clickedNodeId,
+                            color: (nodeData.color && typeof nodeData.color === "object")
+                                     ? { ...nodeData.color, border: groupPreset["color"],highlight:{border:groupPreset["color"]} }  // keep other colors, change border
+                                     : { border: groupPreset["color"],highlight:{border:groupPreset["color"]}  },                    // if no object, just set border
+                            borderWidth: 1.5,
+                            size: Math.round((nodeData.size || 25) * 1.3)        // increase node radius by ~30%
+                        });
+
+                }
+                
+
+
+            });
+
+
+
+            toggleExtraButton.addEventListener("click", function () {
+                toggleExtraButton.classList.toggle('active');
+                extraEdgesVisible = !extraEdgesVisible;
+                const edgesToManipulate = [...extraEdges];
+
+                for (let edge of shownEdges)
+                {
+                    edgesToManipulate.splice(edgesToManipulate.indexOf(edge),1);
+                }
+                if (extraEdgesVisible) {
+                    edges.add(edgesToManipulate);
+                } else 
+                {
+                    // Remove the extra edges by ID
+                    const extraEdgeIds = edgesToManipulate.map(edge => edge.id);
+                    edges.remove(extraEdgeIds);
+                }
+              });
+            circularButton.addEventListener("click", () => updateGraph("circular"));
+            timelineButton.addEventListener("click", () => updateGraph("timeline"));
+
+        });
+        function openPDF()  //MISSING WARNING EDGE CASES
+        {
+            if (filePath=="") 
+            {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No node selected!',
+                    text: 'Please select a node to open its pdf form.',
+                });
+            }
+            else
+            {
+                window.open(filePath, '_blank');
+            }
+        }
+            </script>
+    </main>
+</body>
+</html>

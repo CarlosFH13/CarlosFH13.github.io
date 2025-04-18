@@ -14,8 +14,8 @@
     <header>
         <nav>
             <ul class="nav-list">
-                <li><a href="#home">Cybersecurity</a></li>
-                <li><a href="#cu2">Mindmap generator</a></li>
+                <li><a href="#">Cybersecurity</a></li>
+                <li><a href="./mindmapGen.html">Mindmap generator</a></li>
             </ul>
         </nav>
     </header>
@@ -24,7 +24,7 @@
         <section id="mindmap-section">
             <h2>Cybersecurity<br/>Mind Map</h2>
             <div class="button-group">
-                <button id="nightModeButton" class="night-toggle" aria-label="Toggle Night Mode">
+                <button id="nightModeButton" class="night-toggle" style="padding: 0px;" aria-label="Toggle Night Mode">
                     <svg viewBox="0 0 24 24" class="moon-icon">
                         <path d="M21 12.79A9 9 0 0111.21 3a7 7 0 109.79 9.79z" />
                     </svg>
@@ -63,8 +63,7 @@
         //   - "Week 2" (id=3) and "Week 3" (id=4)
         //   - A random topic within Week 4 to a random topic within Week 7
         // Adjust these IDs and connections however you prefer:
-        var extraEdges = [
-        ];
+        var extraEdges = [];
       
         // Whether extra edges are currently visible
         let extraEdgesVisible = false;
@@ -868,7 +867,7 @@
 
 
 
-        var network = new vis.Network(container, { nodes: nodes, edges: edges }, { physics: false });
+        
         //Handle all on click logic
 
         const groupPresets = {
@@ -903,6 +902,7 @@
         let tagStartingIdBase = 100000;
         let secondXOffsetMulti = 1;
         createCircularGraph();
+        var network = new vis.Network(container, { nodes: nodes, edges: edges }, { physics: false });
 
         function moveTagAboveParents(params)
         {
