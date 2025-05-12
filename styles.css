@@ -1,426 +1,51 @@
-/* General reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-/* Body and overall layout */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    color: #333;
-}
-
-/* Navigation bar styles */
-header {
-    background-color: #6B2C91;
-    padding: 10px 0;
-}
-
-nav ul {
-    list-style-type: none;
-    text-align: center;
-}
-
-nav ul li {
-    display: inline;
-    margin: 0 20px;
-}
-
-nav ul li a {
-    color: #fff;
-    text-decoration: none;
-    font-size: 18px;
-    padding: 10px 20px;
-    transition: color 0.3s ease;
-}
-
-nav ul li a:hover {
-    color: #F8DD68;
-    border-radius: 5px;
-}
-
-/* Main section styling */
-main {
-    padding: 50px 20px;
-    padding-top: 10px;
-    text-align: center;
-    height: 90%
-}
-
-h1 {
-    font-size: 36px;
-    color: #333;
-}
-
-p {
-    font-size: 18px;
-    color: #555;
-}
-
-#mindmap-section {
-    text-align: center;
-    width: 100%;
-    height: 110vh; /* 90% of viewport height */
-    display: flex;
-    flex-direction: column; /* Stack elements vertically */
-    justify-content: center;
-    align-items: center;
-}
-
-#mindmap {
-    width: 100%;
-    height: 85%; /* Slightly reduced to leave space for title */
-    max-height: 85vh;
-    position: relative;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    background: white;
-}
-
-.button-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-    position: relative;
-    width:100%;
-    align-items: center;
-    text-align: center;
-    margin: auto;
-    justify-content: center;
-}
-
-.fh {
-    height:100%;
-    width:49%;
-}
-
-.toggle-button {
-    padding: 10px 15px;
-    border: none;
-    cursor: pointer;
-    background-color: #ddd;
-    border-radius: 5px;
-    font-size: 16px;
-}
-.toggle-button.active {
-    background-color: #6B2C91;
-    color: white;
-}
-
-.inbuttons
-{
-    gap:10px;
-    display: flex;
-    width:25%;
-}
-#openPDF
-{
-    display: flex;
-}
-#nightModeButton
-{
-    display: flex;
-    width: 5%;
-    margin-left: 20%;
-}
-#toggleExtraEdges
-{
-    text-align: center;
-    display: flex;
-    margin-right: 5%;
-}
-/* NIGHT MODE OVERRIDES */
-body.night-mode {
-    background-color: #1c1c1c; /* Dark background */
-    color: #ccc;              /* Light text */
-}
-
-body.night-mode header {
-    background-color: #3f1361; /* Darker purple for header */
-}
-
-body.night-mode #mindmap {
-    background-color: #333; /* Dark background inside the mindmap container */
-    border: 1px solid #555; 
-}
-
-body.night-mode .toggle-button {
-    background-color: #444; 
-    color: #ccc;
-}
-
-body.night-mode .toggle-button.active {
-    background-color: #6B2C91;
-    color: #fff;
-}
-
-body.night-mode nav ul li a {
-    color: #ddd;
-}
-
-/* --- NIGHT TOGGLE (CIRCLE) --- */
-.night-toggle {
-    /* Circle shape */
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    
-    /* Visual style */
-    border: 2px solid #6B2C91;
-    background: transparent;
-    color: #6B2C91;
-    
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    cursor: pointer;
-    transition: background 0.3s, color 0.3s, transform 0.2s;
-}
-
-/* Make the moon icon bigger */
-.night-toggle .moon-icon {
-    width: 26px;
-    height: 26px;
-    fill: #6B2C91;
-    transition: fill 0.3s;
-}
-
-/* Hover: highlight the circle & moon */
-.night-toggle:hover {
-    background-color: #6B2C91;
-    color: white;
-}
-.night-toggle:hover .moon-icon {
-    fill: white;
-}
-
-/* Active: stay purple-filled with white moon */
-.night-toggle.active {
-    background-color: #6B2C91;
-    color: white;
-}
-.night-toggle.active .moon-icon {
-    fill: white;
-}
-
-
-/* --- TEXT TOGGLE FOR EXTRA CONNECTIONS --- */
-.text-toggle {
-    /* Enough width for the text + consistent style */
-    padding: 10px 20px;
-    border: 2px solid #6B2C91;
-    border-radius: 8px;
-    
-    background: transparent;
-    color: #6B2C91;
-    
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.3s, color 0.3s;
-}
-
-/* Hover: fill with purple, white text */
-.text-toggle:hover {
-    background-color: #6B2C91;
-    color: white;
-}
-
-/* Active: once clicked, stays purple/white */
-.text-toggle.active {
-    background-color: #6B2C91;
-    color: white;
-}
-
-
-/* --- NIGHT MODE OVERRIDES --- */
-body.night-mode .night-toggle {
-    border-color: #F8DD68; /* purple border -> yellow border */
-}
-
-/* On hover or active in Night Mode, fill with yellow */
-body.night-mode .night-toggle:hover,
-body.night-mode .night-toggle.active {
-    background-color: #F8DD68; /* fill circle yellow */
-}
-
-/* Moon icon color in Night Mode: default yellow, black on hover/active */
-body.night-mode .night-toggle .moon-icon {
-    fill: #F8DD68;
-}
-body.night-mode .night-toggle:hover .moon-icon,
-body.night-mode .night-toggle.active .moon-icon {
-    fill: #1c1c1c;
-}
-
-/* Text toggle in Night Mode: purple -> yellow border */
-body.night-mode .text-toggle {
-    border-color: #F8DD68;
-    color: #F8DD68;
-}
-body.night-mode .text-toggle:hover {
-    background-color: #F8DD68;
-    color: #1c1c1c;
-}
-/* Stay in 'active' style in Night Mode if clicked */
-body.night-mode .text-toggle.active {
-    background-color: #F8DD68;
-    color: #1c1c1c;
-}
-
-form div 
-{ 
-    margin-bottom: 10px; 
-}
-.entry-container 
-{ 
-    margin-left: 20px; 
-    border-left: 2px solid #ccc; 
-    padding-left: 10px; 
-    margin-top: 10px; 
-    position: relative; 
-}
-.remove-btn 
-{ 
-    position: absolute; 
-    right: 0; 
-    top: 0; 
-    background: red; 
-    color: white; 
-    border: none; 
-    cursor: pointer; 
-}
-
-/* General page styling */
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f5f5f5;
-  margin: 0;
-  padding: 0;
-  color: #333;
-}
-
-/* Main form container */
-form {
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 30px;
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  border-left: 6px solid #6b2c91;
-}
-
-/* Headings */
-h1, h2 {
-  color: #6b2c91;
-  margin-top: 0;
-}
-
-/* Form fields */
-form label {
-  display: block;
-  margin: 15px 0 5px;
-  font-weight: 600;
-}
-
-form input[type="text"],
-form input[type="file"],
-form input[type="number"] {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 1rem;
-  box-sizing: border-box;
-  transition: border-color 0.3s;
-}
-
-form input:focus {
-  outline: none;
-  border-color: #6b2c91;
-  box-shadow: 0 0 0 2px rgba(107, 44, 145, 0.2);
-}
-
-/* Buttons */
-button {
-  padding: 10px 20px;
-  background-color: #6b2c91;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
-  margin-top: 15px;
-}
-
-button:hover {
-  background-color: #5a2480;
-  transform: translateY(-1px);
-}
-#timelineView:hover
-{
-    color: #fff;
-}
-
-
-/* Remove buttons (e.g. for removing entries) */
-.remove-btn {
-  background-color: #ccc;
-  color: #333;
-  padding: 4px 10px;
-  font-size: 0.9rem;
-  border-radius: 6px;
-  margin-bottom: 10px;
-}
-
-.remove-btn:hover {
-  background-color: #b3b3b3;
-}
-
-/* Entry containers */
-.entry-container {
-  background-color: #fafafa;
-  padding: 15px 20px;
-  margin-bottom: 15px;
-  border-left: 4px solid #e0e0e0;
-  border-radius: 10px;
-}
-
-/* Button group for view toggles */
-.button-group {
-  margin-top: 30px;
+/* Layout the container: chess board on the left, sidebar on the right */
+#gameContainer {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  max-width: 800px;
+  margin: 20px auto;
 }
-
-.toggle-button {
-  background-color: #eee;
-  color: #6b2c91;
-  border: 1px solid #6b2c91;
+#board {
+  /* Set a fixed size for the chessboard */
+  width: 400px;
+  /* Ensure the board is visually separated if sidebar has background */
+  margin-right: 20px;
 }
-
-.toggle-button.active {
-  background-color: #6b2c91;
-  color: #fff;
+#sidebar {
+  flex: 1;
+  min-width: 150px;
+  font-family: sans-serif;
 }
-
-/* Subtle yellow accent for highlights */
-.highlight {
-  background-color: #fff9e6;
-  border-left: 4px solid #f5c518;
-  padding: 10px 15px;
-  border-radius: 6px;
-  color: #444;
+/* Style for the Play button */
+#playBtn {
+  display: block;
+  margin-bottom: 10px;
+  padding: 6px 12px;
+  font-size: 16px;
 }
-
+/* Cheat controls container styling */
+#cheatControls {
+  margin-bottom: 10px;
+}
+#cheatControls label {
+  font-size: 14px;
+  margin-right: 5px;
+}
+#cheatInput {
+  padding: 4px;
+  width: 120px;
+}
+#cheatBtn {
+  padding: 4px 8px;
+}
+/* Status text styling */
+#status {
+  margin-top: 15px;
+  font-weight: bold;
+  white-space: pre-line; /* preserve line breaks if we use them */
+}
+/* (Optional) Highlight cheat mode by changing sidebar background when active */
+.cheat-active #sidebar {
+  background: #ffeeba; /* light yellow background when cheat mode is active */
+}
+/* Custom highlight class for cheat move highlights (not using, we highlight via inline style) */
